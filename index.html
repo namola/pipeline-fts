@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#020617">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Pipeline Agent · FTS</title>
+<link rel="manifest" id="manifest-placeholder">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#020617;--bg2:#0a0f1e;--bg3:#0f172a;--border:#1e293b;--border2:#334155;--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--accent:#6366f1;--accent2:#8b5cf6;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--blue:#3b82f6}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+button{cursor:pointer;font-family:inherit;border:none}
+input,select,textarea{font-family:inherit;background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;font-size:13px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+select option{background:var(--bg3)}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* LAYOUT */
+#app{display:flex;flex-direction:column;height:100vh}
+#header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;flex-shrink:0}
+#header-left{display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;box-shadow:0 4px 12px rgba(99,102,241,.4)}
+.app-title{font-weight:800;font-size:14px;letter-spacing:-0.3px}
+.app-status{font-size:11px;display:flex;align-items:center;gap:4px;margin-top:1px}
+.dot{width:5px;height:5px;border-radius:50%;display:inline-block;flex-shrink:0}
+#nav{display:flex;gap:4px}
+.nav-btn{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;transition:all .15s;border:1px solid transparent}
+.nav-btn.active{background:var(--bg3);border-color:var(--border2);color:var(--text)}
+.nav-btn:not(.active){background:transparent;color:var(--text3)}
+#content{flex:1;overflow:hidden;display:flex;flex-direction:column}
+
+/* SETUP SCREEN */
+#setup-screen{display:flex;align-items:center;justify-content:center;flex:1;padding:24px;animation:fadeIn .4s ease}
+.setup-card{max-width:480px;width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:32px}
+.setup-icon{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 20px;box-shadow:0 8px 24px rgba(99,102,241,.5)}
+.setup-title{text-align:center;font-size:22px;font-weight:800;margin-bottom:8px}
+.setup-sub{text-align:center;color:var(--text3);font-size:13px;margin-bottom:28px;line-height:1.6}
+.setup-label{display:block;color:var(--text3);font-size:11px;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.setup-input{margin-bottom:16px}
+.btn-primary{width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:12px;font-size:14px;font-weight:700;box-shadow:0 4px 16px rgba(99,102,241,.5);transition:opacity .2s}
+.btn-primary:hover{opacity:.9}
+.setup-note{margin-top:14px;font-size:11px;color:var(--text3);text-align:center;line-height:1.6}
+.setup-note a{color:var(--accent);text-decoration:none}
+
+/* TABS */
+.tab{display:none;flex:1;overflow:hidden;flex-direction:column}
+.tab.active{display:flex}
+.tab-scroll{flex:1;overflow-y:auto;padding:20px 16px;max-width:900px;width:100%;margin:0 auto}
+
+/* KPI GRID */
+.kpi-grid{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.kpi-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;flex:1;min-width:130px;animation:fadeIn .3s ease}
+.kpi-icon{font-size:18px;margin-bottom:6px}
+.kpi-value{font-size:19px;font-weight:800;letter-spacing:-0.5px}
+.kpi-label{color:var(--text2);font-size:11px;margin-top:2px}
+.kpi-sub{color:var(--text3);font-size:10px;margin-top:3px}
+
+/* STAGE BAR */
+.section-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px}
+.section-title{font-weight:700;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
+.stage-row{margin-bottom:10px}
+.stage-row-top{display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px}
+.stage-bar-bg{background:var(--border);border-radius:4px;height:6px}
+.stage-bar-fill{height:100%;border-radius:4px;transition:width .5s ease}
+
+/* QUICK ACTIONS */
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.quick-btn{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;color:var(--text2);font-size:12px;font-weight:600;text-align:left;transition:all .15s}
+.quick-btn:hover{border-color:var(--accent);color:var(--text)}
+.quick-btn-icon{font-size:20px;flex-shrink:0}
+
+/* PIPELINE */
+.pipeline-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap}
+.filter-chip{padding:4px 10px;border-radius:20px;font-size:11px;border:1px solid var(--border);background:var(--bg3);color:var(--text3);transition:all .15s}
+.filter-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-add{padding:8px 16px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 2px 8px rgba(99,102,241,.4)}
+.deal-form-card{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:18px;margin-bottom:16px;animation:fadeIn .2s ease}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-group label{display:block;color:var(--text3);font-size:11px;margin-bottom:4px}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+.btn-cancel{padding:7px 16px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-size:13px}
+.btn-save{padding:7px 18px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:8px;font-size:13px;font-weight:600}
+.deal-list{display:flex;flex-direction:column;gap:10px}
+.deal-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;gap:14px;align-items:flex-start;animation:fadeIn .2s ease}
+.deal-card.risk{border-color:rgba(239,68,68,.3)}
+.deal-card.soon{border-color:rgba(245,158,11,.3)}
+.deal-main{flex:1;min-width:0}
+.deal-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.deal-name{font-weight:700;font-size:14px}
+.badge{border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-risk{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);border-radius:20px;padding:1px 8px;font-size:11px}
+.badge-soon{background:rgba(245,158,11,.15);color:var(--yellow);border:1px solid rgba(245,158,11,.3);border-radius:20px;padding:1px 8px;font-size:11px}
+.deal-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text3)}
+.deal-amount{color:#a5b4fc;font-weight:700}
+.deal-notes{font-size:12px;color:#475569;margin-top:6px;font-style:italic}
+.deal-actions{display:flex;gap:6px;flex-shrink:0}
+.deal-btn{padding:5px 10px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;font-size:13px}
+.empty-state{text-align:center;padding:50px 20px;color:var(--text3)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.empty-title{font-size:15px;font-weight:600;color:var(--text2);margin-bottom:8px}
+
+/* COACH */
+#coach-tab{display:none;flex-direction:column;height:100%}
+#coach-tab.active{display:flex}
+.quickbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;gap:8px;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+.quickbar::-webkit-scrollbar{display:none}
+.quick-chip{padding:5px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;color:var(--text2);font-size:12px;white-space:nowrap;flex-shrink:0;transition:all .15s}
+.quick-chip:hover{border-color:var(--accent);color:#a5b4fc}
+#chat-messages{flex:1;overflow-y:auto;padding:20px 16px;max-width:760px;width:100%;margin:0 auto}
+.msg-wrap{display:flex;gap:10px;margin-bottom:18px;align-items:flex-start;animation:fadeIn .2s ease}
+.msg-wrap.user{flex-direction:row-reverse}
+.msg-avatar{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
+.msg-avatar.marc{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.msg-avatar.user{background:var(--bg3);border:1px solid var(--border2)}
+.msg-bubble{max-width:75%;border-radius:14px;padding:11px 15px;font-size:13px;line-height:1.7;white-space:pre-wrap}
+.msg-bubble.marc{background:var(--bg3);border:1px solid var(--border);border-radius:4px 14px 14px 14px}
+.msg-bubble.user{background:var(--bg2);border:1px solid var(--border2);border-radius:14px 4px 14px 14px}
+.typing-wrap{display:flex;gap:10px;margin-bottom:18px;align-items:flex-start}
+.typing-dots{display:flex;gap:5px;align-items:center;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:4px 14px 14px 14px}
+.typing-dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.typing-dot:nth-child(1){animation:bounce 1.2s ease 0s infinite}
+.typing-dot:nth-child(2){animation:bounce 1.2s ease .2s infinite}
+.typing-dot:nth-child(3){animation:bounce 1.2s ease .4s infinite}
+.marc-empty{text-align:center;padding:60px 20px;animation:fadeIn .3s ease}
+.marc-avatar-big{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;box-shadow:0 8px 24px rgba(99,102,241,.4)}
+#chat-input-bar{padding:12px 16px;background:var(--bg2);border-top:1px solid var(--border);flex-shrink:0}
+.chat-input-inner{max-width:760px;margin:0 auto;display:flex;gap:10px;align-items:flex-end}
+#chat-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:11px 15px;color:var(--text);font-size:14px;resize:none;line-height:1.6;min-height:44px;max-height:120px;overflow-y:auto}
+#send-btn{width:44px;height:44px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(99,102,241,.4);transition:all .2s}
+#send-btn:disabled{background:var(--bg3);box-shadow:none;cursor:not-allowed}
+
+/* INSTALL BANNER */
+#install-banner{display:none;background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(139,92,246,.2));border-bottom:1px solid rgba(99,102,241,.3);padding:10px 16px;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
+#install-banner.show{display:flex}
+.install-text{font-size:12px;color:var(--text2)}
+.install-text strong{color:var(--text)}
+.btn-install{padding:6px 14px;background:var(--accent);color:#fff;border-radius:8px;font-size:12px;font-weight:600}
+.btn-dismiss{padding:6px;background:transparent;color:var(--text3);font-size:16px}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- INSTALL BANNER -->
+  <div id="install-banner">
+    <div class="install-text"><strong>📱 Installer comme app</strong> — accès rapide depuis votre bureau/écran d'accueil</div>
+    <div style="display:flex;gap:8px;flex-shrink:0">
+      <button class="btn-install" onclick="installPWA()">Installer</button>
+      <button class="btn-dismiss" onclick="document.getElementById('install-banner').classList.remove('show')">✕</button>
+    </div>
+  </div>
+
+  <!-- SETUP SCREEN -->
+  <div id="setup-screen">
+    <div class="setup-card">
+      <div class="setup-icon">⚡</div>
+      <div class="setup-title">Pipeline Agent FTS</div>
+      <div class="setup-sub">Saisie ta clé API Anthropic pour activer Marc Dupont, ton coach commercial IA.<br>Elle sera stockée uniquement sur cet appareil.</div>
+      <div class="setup-input">
+        <label class="setup-label">Clé API Anthropic</label>
+        <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." autocomplete="off">
+      </div>
+      <button class="btn-primary" onclick="saveApiKey()">🚀 Activer le Pipeline Agent</button>
+      <div class="setup-note">
+        1. Va sur <a href="https://console.anthropic.com/account/keys" target="_blank">console.anthropic.com/account/keys</a><br>
+        2. Clique <strong style="color:#e2e8f0">Create Key</strong> → copie la clé<br>
+        3. Colle-la ici — stockée uniquement sur cet appareil, jamais envoyée ailleurs.<br><br>
+        <span style="color:#6366f1">✓ À faire une seule fois par appareil</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP (hidden until setup) -->
+  <div id="main-app" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+
+    <!-- HEADER -->
+    <div id="header">
+      <div id="header-left">
+        <div class="logo">⚡</div>
+        <div>
+          <div class="app-title">Pipeline Agent</div>
+          <div class="app-status" id="status-line">
+            <span class="dot" style="background:var(--green)"></span>
+            <span style="color:var(--green)" id="status-text">Prêt</span>
+          </div>
+        </div>
+      </div>
+      <div id="nav">
+        <button class="nav-btn active" onclick="switchTab('dashboard')">📊</button>
+        <button class="nav-btn" onclick="switchTab('pipeline')">📋</button>
+        <button class="nav-btn" onclick="switchTab('coach')">🤖</button>
+        <button class="nav-btn" onclick="showSettings()" style="margin-left:4px">⚙️</button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD TAB -->
+    <div class="tab active" id="dashboard-tab">
+      <div class="tab-scroll" id="dashboard-scroll">
+        <div class="kpi-grid" id="kpi-grid"></div>
+        <div class="section-card">
+          <div class="section-title">Répartition par stage</div>
+          <div id="stage-bars"></div>
+        </div>
+        <div class="section-card">
+          <div class="section-title">Actions rapides avec Marc</div>
+          <div class="quick-grid" id="quick-actions"></div>
+        </div>
+        <div id="empty-dashboard" style="display:none">
+          <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <div class="empty-title">Pipeline vide</div>
+            <div style="font-size:13px;margin-bottom:20px">Commence par ajouter tes deals actifs</div>
+            <button class="btn-primary" style="max-width:260px;margin:0 auto" onclick="switchTab('pipeline');setTimeout(openNewDeal,100)">+ Ajouter mon premier deal</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PIPELINE TAB -->
+    <div class="tab" id="pipeline-tab">
+      <div class="tab-scroll">
+        <div class="pipeline-header">
+          <div class="filter-row" id="filter-row">
+            <button class="filter-chip active" data-stage="all" onclick="setFilter(this,'all')">Tous</button>
+          </div>
+          <button class="btn-add" onclick="openNewDeal()">+ Nouveau deal</button>
+        </div>
+        <div id="deal-form-container"></div>
+        <div class="deal-list" id="deal-list"></div>
+      </div>
+    </div>
+
+    <!-- COACH TAB -->
+    <div class="tab" id="coach-tab">
+      <div class="quickbar" id="quickbar"></div>
+      <div id="chat-messages"></div>
+      <div id="chat-input-bar">
+        <div class="chat-input-inner">
+          <textarea id="chat-input" placeholder="Parle à Marc : deal bloqué, stratégie compte, forecast…" rows="1" onkeydown="chatKeydown(event)" oninput="autoResize(this)"></textarea>
+          <button id="send-btn" onclick="sendChat()">➤</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'fts-pipeline-deals-v2';
+const CHAT_KEY = 'fts-pipeline-chat-v2';
+const API_KEY_STORAGE = 'fts-api-key';
+
+const STAGES = [
+  {id:'prospect',label:'Prospect',color:'#64748b',prob:10},
+  {id:'qualification',label:'Qualification',color:'#f59e0b',prob:25},
+  {id:'proposition',label:'Proposition',color:'#3b82f6',prob:50},
+  {id:'negotiation',label:'Négociation',color:'#8b5cf6',prob:75},
+  {id:'closing',label:'Closing',color:'#10b981',prob:90},
+  {id:'won',label:'Gagné ✓',color:'#22c55e',prob:100},
+  {id:'lost',label:'Perdu ✗',color:'#ef4444',prob:0},
+];
+const PRODUCTS = ['Cisco SD-WAN','Cisco ACI','Fortinet NGFW','Dell HCI','IBM Power','IBM Storage','Veeam','Forcepoint','Autre'];
+const BANKS = ['UIB','ATB','BIAT','STB','BNA','Amen Bank','Al Baraka','Wifak Bank','QNBT','Banque Zitouna','BH Bank','Attijari','Autre'];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let deals = [];
+let chatHistory = [];
+let currentTab = 'dashboard';
+let currentFilter = 'all';
+let editingDeal = null;
+let apiKey = '';
+let deferredInstall = null;
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  apiKey = localStorage.getItem(API_KEY_STORAGE) || '';
+  if (apiKey) {
+    showApp();
+  } else {
+    document.getElementById('setup-screen').style.display = 'flex';
+  }
+
+  // PWA install prompt
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstall = e;
+    if (apiKey) document.getElementById('install-banner').classList.add('show');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    document.getElementById('install-banner').classList.remove('show');
+    deferredInstall = null;
+  });
+});
+
+function saveApiKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val.startsWith('sk-ant')) { alert('Clé API invalide. Elle doit commencer par sk-ant...'); return; }
+  apiKey = val;
+  localStorage.setItem(API_KEY_STORAGE, apiKey);
+  showApp();
+}
+
+function showApp() {
+  document.getElementById('setup-screen').style.display = 'none';
+  const main = document.getElementById('main-app');
+  main.style.display = 'flex';
+
+  // Load data
+  try { deals = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(_) { deals = []; }
+  try { chatHistory = JSON.parse(localStorage.getItem(CHAT_KEY)) || []; } catch(_) { chatHistory = []; }
+
+  buildFilterChips();
+  renderDashboard();
+  renderDeals();
+  renderChat();
+  renderQuickbar();
+}
+
+function saveDeals() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(deals));
+  setStatus('saved');
+}
+
+function saveChat() {
+  localStorage.setItem(CHAT_KEY, JSON.stringify(chatHistory.slice(-40)));
+}
+
+function setStatus(s) {
+  const dot = document.querySelector('#status-line .dot');
+  const txt = document.getElementById('status-text');
+  if (s === 'saving') { dot.style.background='#f59e0b'; txt.style.color='#f59e0b'; txt.textContent='Sauvegarde…'; dot.style.animation='pulse 1s infinite'; }
+  else if (s === 'saved') { dot.style.background='#22c55e'; txt.style.color='#22c55e'; txt.textContent=`${deals.length} deal${deals.length!==1?'s':''} · ${fmt(getMetrics().totalPipeline)} · ✓`; dot.style.animation='none'; }
+  else if (s === 'error') { dot.style.background='#ef4444'; txt.style.color='#ef4444'; txt.textContent='Erreur'; dot.style.animation='none'; }
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+const fmt = (n) => new Intl.NumberFormat('fr-TN').format(Math.round(n||0)) + ' DT';
+const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+function daysDiff(d) {
+  if(!d) return null;
+  return Math.ceil((new Date(d)-new Date())/86400000);
+}
+function getMetrics() {
+  const active = deals.filter(d=>!['won','lost'].includes(d.stage));
+  const won = deals.filter(d=>d.stage==='won');
+  const totalPipeline = active.reduce((s,d)=>s+(parseFloat(d.amount)||0),0);
+  const weighted = active.reduce((s,d)=>{
+    const st=STAGES.find(x=>x.id===d.stage);
+    return s+(parseFloat(d.amount)||0)*(st?.prob||0)/100;
+  },0);
+  const wonTotal = won.reduce((s,d)=>s+(parseFloat(d.amount)||0),0);
+  const atRisk = active.filter(d=>{ const dd=daysDiff(d.closing); return dd!==null&&dd<0; });
+  return {active,won,totalPipeline,weighted,wonTotal,atRisk};
+}
+
+// ─── TABS ────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab,.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById(tab+'-tab').classList.add('active');
+  document.querySelectorAll('.nav-btn')[['dashboard','pipeline','coach'].indexOf(tab)].classList.add('active');
+  currentTab = tab;
+  if(tab==='dashboard') renderDashboard();
+  if(tab==='pipeline') renderDeals();
+  if(tab==='coach') { renderChat(); setTimeout(()=>scrollChatBottom(),50); }
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const m = getMetrics();
+  const kpiGrid = document.getElementById('kpi-grid');
+  kpiGrid.innerHTML = [
+    {icon:'💼',label:'Pipeline total',value:fmt(m.totalPipeline),sub:`${m.active.length} deals actifs`,color:'#6366f1'},
+    {icon:'⚖️',label:'Weighted pipeline',value:fmt(m.weighted),sub:'Pondéré par prob.',color:'#8b5cf6'},
+    {icon:'✅',label:'Gagné YTD',value:fmt(m.wonTotal),sub:`${m.won.length} deals closés`,color:'#22c55e'},
+    {icon:'⚠️',label:'Deals en retard',value:m.atRisk.length,sub:'Closing dépassé',color:m.atRisk.length>0?'#ef4444':'#64748b'},
+  ].map(k=>`<div class="kpi-card"><div class="kpi-icon">${k.icon}</div><div class="kpi-value" style="color:${k.color}">${k.value}</div><div class="kpi-label">${k.label}</div><div class="kpi-sub">${k.sub}</div></div>`).join('');
+
+  // Stage bars
+  const bars = document.getElementById('stage-bars');
+  const activeStages = STAGES.filter(s=>!['won','lost'].includes(s.id));
+  const vals = activeStages.map(s=>deals.filter(d=>d.stage===s.id).reduce((acc,d)=>acc+(parseFloat(d.amount)||0),0));
+  const maxVal = Math.max(...vals, 1);
+  bars.innerHTML = activeStages.map((s,i)=>{
+    const cnt = deals.filter(d=>d.stage===s.id).length;
+    return `<div class="stage-row">
+      <div class="stage-row-top"><span style="color:var(--text2)">${s.label}</span><span style="color:${s.color};font-weight:600">${fmt(vals[i])} · ${cnt} deal${cnt!==1?'s':''}</span></div>
+      <div class="stage-bar-bg"><div class="stage-bar-fill" style="width:${(vals[i]/maxVal)*100}%;background:${s.color}"></div></div>
+    </div>`;
+  }).join('');
+
+  // Quick actions
+  const qa = document.getElementById('quick-actions');
+  const actions = [
+    {icon:'🔍',label:'Analyser pipeline',prompt:'Analyse mon pipeline complet et donne-moi un diagnostic global avec recommandations prioritaires.'},
+    {icon:'⚠️',label:'Deals à risque',prompt:'Identifie mes deals à risque et propose des actions correctives concrètes.'},
+    {icon:'📈',label:'Forecast ce mois',prompt:'Fais mon forecast réaliste vs optimiste pour ce mois basé sur mon pipeline.'},
+    {icon:'🎯',label:'Priorités semaine',prompt:'Quelles sont mes 3 priorités absolues cette semaine pour maximiser mes chances de closing ?'},
+  ];
+  qa.innerHTML = actions.map(a=>`<button class="quick-btn" onclick="quickCoach(${JSON.stringify(a.prompt)})"><span class="quick-btn-icon">${a.icon}</span><span>${a.label}</span></button>`).join('');
+
+  // Empty state
+  document.getElementById('empty-dashboard').style.display = deals.length===0 ? 'block' : 'none';
+  setStatus('saved');
+}
+
+// ─── PIPELINE ────────────────────────────────────────────────────────────────
+function buildFilterChips() {
+  const row = document.getElementById('filter-row');
+  row.innerHTML = `<button class="filter-chip active" data-stage="all" onclick="setFilter(this,'all')">Tous</button>`
+    + STAGES.map(s=>`<button class="filter-chip" data-stage="${s.id}" onclick="setFilter(this,'${s.id}')">${s.label}</button>`).join('');
+}
+
+function setFilter(el, stage) {
+  document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  currentFilter = stage;
+  renderDeals();
+}
+
+function openNewDeal() {
+  editingDeal = {id:null,client:'',product:'',amount:'',stage:'prospect',closing:'',contact:'',notes:'',createdAt:null};
+  renderDealForm();
+}
+
+function renderDealForm(deal) {
+  const d = deal || editingDeal;
+  const c = document.getElementById('deal-form-container');
+  c.innerHTML = `<div class="deal-form-card">
+    <div style="font-weight:700;font-size:14px;margin-bottom:16px;color:#a5b4fc">${d.id?'✏️ Modifier — '+d.client:'➕ Nouveau deal'}</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Client *</label><select id="f-client"><option value="">Banque…</option>${BANKS.map(b=>`<option value="${b}"${d.client===b?' selected':''}>${b}</option>`).join('')}</select></div>
+      <div class="form-group"><label>Produit *</label><select id="f-product"><option value="">Solution…</option>${PRODUCTS.map(p=>`<option value="${p}"${d.product===p?' selected':''}>${p}</option>`).join('')}</select></div>
+      <div class="form-group"><label>Montant (DT HT) *</label><input type="number" id="f-amount" placeholder="ex: 250000" value="${d.amount||''}"></div>
+      <div class="form-group"><label>Stage *</label><select id="f-stage">${STAGES.map(s=>`<option value="${s.id}"${d.stage===s.id?' selected':''}>${s.label}</option>`).join('')}</select></div>
+      <div class="form-group"><label>Date closing</label><input type="date" id="f-closing" value="${d.closing||''}"></div>
+      <div class="form-group"><label>Contact principal</label><input type="text" id="f-contact" placeholder="Nom / titre" value="${d.contact||''}"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label>Notes / Contexte</label><textarea id="f-notes" rows="3" style="resize:vertical">${d.notes||''}</textarea></div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="cancelDealForm()">Annuler</button>
+      <button class="btn-save" onclick="saveDealForm('${d.id||''}')">💾 Sauvegarder</button>
+    </div>
+  </div>`;
+}
+
+function cancelDealForm() {
+  document.getElementById('deal-form-container').innerHTML = '';
+  editingDeal = null;
+}
+
+function saveDealForm(existingId) {
+  const client = document.getElementById('f-client').value;
+  const product = document.getElementById('f-product').value;
+  const amount = document.getElementById('f-amount').value;
+  if(!client||!product||!amount) { alert('Client, produit et montant sont obligatoires'); return; }
+  const deal = {
+    id: existingId || genId(),
+    client, product, amount,
+    stage: document.getElementById('f-stage').value,
+    closing: document.getElementById('f-closing').value,
+    contact: document.getElementById('f-contact').value,
+    notes: document.getElementById('f-notes').value,
+    createdAt: existingId ? (deals.find(d=>d.id===existingId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
+  };
+  if(existingId) { deals = deals.map(d=>d.id===existingId?deal:d); }
+  else { deals.push(deal); }
+  cancelDealForm();
+  saveDeals();
+  renderDeals();
+  renderDashboard();
+}
+
+function renderDeals() {
+  const list = document.getElementById('deal-list');
+  const filtered = deals.filter(d=>currentFilter==='all'||d.stage===currentFilter);
+  if(filtered.length===0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Aucun deal dans ce stage</div></div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(deal=>{
+    const days = daysDiff(deal.closing);
+    const isRisk = days!==null&&days<0&&!['won','lost'].includes(deal.stage);
+    const isSoon = days!==null&&days>=0&&days<=14&&!['won','lost'].includes(deal.stage);
+    const stg = STAGES.find(s=>s.id===deal.stage)||STAGES[0];
+    return `<div class="deal-card${isRisk?' risk':isSoon?' soon':''}">
+      <div class="deal-main">
+        <div class="deal-top">
+          <span class="deal-name">${deal.client}</span>
+          <span class="badge" style="background:${stg.color}22;color:${stg.color};border:1px solid ${stg.color}44">${stg.label}</span>
+          ${isRisk?`<span class="badge-risk">⚠️ En retard ${Math.abs(days)}j</span>`:''}
+          ${isSoon?`<span class="badge-soon">🔥 J-${days}</span>`:''}
+        </div>
+        <div class="deal-meta">
+          <span class="deal-amount">${deal.amount?fmt(parseFloat(deal.amount)):'—'}</span>
+          ${deal.product?`<span>📦 ${deal.product}</span>`:''}
+          ${deal.contact?`<span>👤 ${deal.contact}</span>`:''}
+          ${deal.closing?`<span>📅 ${new Date(deal.closing).toLocaleDateString('fr-TN')}</span>`:''}
+        </div>
+        ${deal.notes?`<div class="deal-notes">"${deal.notes}"</div>`:''}
+      </div>
+      <div class="deal-actions">
+        <button class="deal-btn" style="color:#a5b4fc" onclick="quickCoach('Deal coaching sur ${deal.client} — ${deal.product} : ${(deal.notes||'aide-moi à avancer').replace(/'/g,"\\'")}')">🤖</button>
+        <button class="deal-btn" style="color:var(--text2)" onclick="editDeal('${deal.id}')">✏️</button>
+        <button class="deal-btn" style="color:var(--red)" onclick="deleteDeal('${deal.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function editDeal(id) {
+  editingDeal = deals.find(d=>d.id===id);
+  renderDealForm(editingDeal);
+  document.getElementById('deal-form-container').scrollIntoView({behavior:'smooth'});
+}
+
+function deleteDeal(id) {
+  if(!confirm('Supprimer ce deal ?')) return;
+  deals = deals.filter(d=>d.id!==id);
+  saveDeals();
+  renderDeals();
+  renderDashboard();
+}
+
+// ─── COACH ───────────────────────────────────────────────────────────────────
+const QUICK_PROMPTS = [
+  {label:'📊 Analyser pipeline',prompt:'Analyse mon pipeline complet et donne-moi un diagnostic avec recommandations.'},
+  {label:'⚠️ Deals à risque',prompt:'Identifie mes deals à risque et propose des actions correctives concrètes.'},
+  {label:'📈 Forecast',prompt:'Fais mon forecast réaliste vs optimiste pour ce mois.'},
+  {label:'🎯 Priorités semaine',prompt:'Quelles sont mes 3 priorités absolues cette semaine ?'},
+  {label:'🔄 Reset chat',prompt:null},
+];
+
+function renderQuickbar() {
+  const bar = document.getElementById('quickbar');
+  bar.innerHTML = QUICK_PROMPTS.map(q=>
+    `<button class="quick-chip" onclick="${q.prompt?`sendCoach(${JSON.stringify(q.prompt)})`:'resetChat()'}">${q.label}</button>`
+  ).join('');
+}
+
+function renderChat() {
+  const el = document.getElementById('chat-messages');
+  if(chatHistory.length===0) {
+    el.innerHTML = `<div class="marc-empty">
+      <div class="marc-avatar-big">🤖</div>
+      <div style="font-weight:800;font-size:16px;margin-bottom:8px">Marc Dupont · Agent Commercial</div>
+      <div style="color:var(--text3);font-size:13px;line-height:1.7;max-width:380px;margin:0 auto">
+        J'ai accès à ton pipeline en temps réel.<br>Dis-moi ce que tu veux analyser.
+      </div>
+      ${deals.length===0?`<div style="margin-top:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px 16px;font-size:13px;color:#f59e0b;max-width:340px;margin:20px auto 0">⚠️ Pipeline vide — ajoute des deals d'abord.</div>`:''}
+    </div>`;
+    return;
+  }
+  el.innerHTML = chatHistory.map(m=>`
+    <div class="msg-wrap ${m.role==='user'?'user':''}">
+      <div class="msg-avatar ${m.role==='user'?'user':'marc'}">${m.role==='user'?'N':'M'}</div>
+      <div class="msg-bubble ${m.role==='user'?'user':'marc'}">${escHtml(m.content)}</div>
+    </div>`).join('');
+  scrollChatBottom();
+}
+
+function scrollChatBottom() {
+  const el = document.getElementById('chat-messages');
+  el.scrollTop = el.scrollHeight;
+}
+
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+function showTyping() {
+  const el = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.id = 'typing-indicator';
+  div.className = 'typing-wrap';
+  div.innerHTML = `<div class="msg-avatar marc">M</div><div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  el.appendChild(div);
+  scrollChatBottom();
+}
+
+function hideTyping() {
+  const t = document.getElementById('typing-indicator');
+  if(t) t.remove();
+}
+
+function resetChat() {
+  chatHistory = [];
+  saveChat();
+  renderChat();
+}
+
+async function sendCoach(text) {
+  if(!text.trim()) return;
+  chatHistory.push({role:'user',content:text});
+  if(currentTab==='coach') renderChat();
+  else switchTab('coach');
+
+  document.getElementById('chat-input').value='';
+  document.getElementById('chat-input').style.height='44px';
+  document.getElementById('send-btn').disabled=true;
+  showTyping();
+
+  const m = getMetrics();
+  const pipelineJson = JSON.stringify(deals.map(d=>({
+    client:d.client, produit:d.product,
+    montant_DT:parseFloat(d.amount)||0,
+    stage:d.stage, closing:d.closing||'non défini',
+    contact:d.contact, notes:d.notes,
+    jours_avant_closing:d.closing?daysDiff(d.closing):null,
+  })),null,2);
+
+  const systemPrompt = `Tu es Marc Dupont, Directeur Commercial B2B avec 20 ans d'expérience IT banking. Tu coaches Nabli (SAM chez FTS, marché bancaire tunisien).
+
+PIPELINE ACTUEL (JSON) :
+${pipelineJson}
+
+MÉTRIQUES :
+Pipeline total: ${fmt(m.totalPipeline)} | Weighted: ${fmt(m.weighted)} | Deals actifs: ${m.active.length} | Gagné YTD: ${fmt(m.wonTotal)} | Deals en retard: ${m.atRisk.length}
+
+TON RÔLE EN MODE AGENT :
+- Tu AS ACCÈS au pipeline réel de Nabli — analyse-le concrètement
+- Identifie les deals à risque (closing dépassé, stagnation de stage)
+- Recommande des actions précises deal par deal
+- Challenge les probabilités et les montants
+- Donne un forecast réaliste vs optimiste
+- Termine chaque analyse par : 🎯 TOP 3 ACTIONS · ⚠️ RISQUES · 📊 FORECAST
+
+STYLE : Direct, exigeant, bienveillant. Français + jargon B2B anglais.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        system:systemPrompt,
+        messages:chatHistory.slice(-20),
+      })
+    });
+    const data = await res.json();
+    if(data.error) throw new Error(data.error.message);
+    const reply = data.content?.[0]?.text || 'Erreur API.';
+    chatHistory.push({role:'assistant',content:reply});
+    saveChat();
+  } catch(e) {
+    chatHistory.push({role:'assistant',content:'❌ Erreur : '+e.message});
+  }
+  hideTyping();
+  renderChat();
+  document.getElementById('send-btn').disabled=false;
+}
+
+function sendChat() {
+  const val = document.getElementById('chat-input').value.trim();
+  if(val) sendCoach(val);
+}
+
+function chatKeydown(e) {
+  if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendChat(); }
+}
+
+function autoResize(el) {
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,120)+'px';
+}
+
+function quickCoach(prompt) {
+  switchTab('coach');
+  setTimeout(()=>sendCoach(prompt),100);
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+function showSettings() {
+  const masked = apiKey ? apiKey.slice(0,12) + '...' + apiKey.slice(-4) : 'Non configurée';
+  const newKey = prompt('Clé API actuelle : ' + masked + '\n\nNouvelle clé (laisser vide pour annuler) :', '');
+  if(newKey && newKey.startsWith('sk-ant')) {
+    apiKey = newKey;
+    localStorage.setItem(API_KEY_STORAGE, apiKey);
+    alert('Clé API mise à jour ✓');
+  } else if(newKey === 'reset') {
+    localStorage.removeItem(API_KEY_STORAGE);
+    location.reload();
+  }
+}
+
+// ─── PWA INSTALL ─────────────────────────────────────────────────────────────
+async function installPWA() {
+  if(deferredInstall) {
+    deferredInstall.prompt();
+    const result = await deferredInstall.userChoice;
+    if(result.outcome==='accepted') document.getElementById('install-banner').classList.remove('show');
+  }
+}
+
+// ─── PWA MANIFEST (inline) ───────────────────────────────────────────────────
+const manifest = {
+  name:'Pipeline Agent FTS',
+  short_name:'Pipeline',
+  description:'Coach commercial B2B - FTS',
+  start_url:'.',
+  display:'standalone',
+  background_color:'#020617',
+  theme_color:'#020617',
+  icons:[{src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%236366f1"/><text y=".9em" font-size="80" x="10">⚡</text></svg>',sizes:'any',type:'image/svg+xml'}]
+};
+const blob = new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
+document.getElementById('manifest-placeholder').href = URL.createObjectURL(blob);
+
+// Service Worker pour cache offline
+if('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE='pipeline-v1';
+    self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['.']))));
+    self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{
+      const clone=res.clone();
+      caches.open(CACHE).then(c=>c.put(e.request,clone));
+      return res;
+    }))));
+  `;
+  const swBlob = new Blob([swCode],{type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(()=>{});
+}
+</script>
+</body>
+</html>
