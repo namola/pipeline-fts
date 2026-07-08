@@ -7,10 +7,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>Pipeline Agent · FTS</title>
-<link rel="manifest" id="manifest-placeholder">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#020617;--bg2:#0a0f1e;--bg3:#0f172a;--border:#1e293b;--border2:#334155;--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--accent:#6366f1;--accent2:#8b5cf6;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--blue:#3b82f6}
+:root{--bg:#020617;--bg2:#0a0f1e;--bg3:#0f172a;--border:#1e293b;--border2:#334155;--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--accent:#6366f1;--accent2:#8b5cf6;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b}
 body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
 button{cursor:pointer;font-family:inherit;border:none}
 input,select,textarea{font-family:inherit;background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;font-size:13px;width:100%}
@@ -22,68 +21,50 @@ select option{background:var(--bg3)}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
-/* LAYOUT */
 #app{display:flex;flex-direction:column;height:100vh}
 #header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;flex-shrink:0}
 #header-left{display:flex;align-items:center;gap:10px}
-.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;box-shadow:0 4px 12px rgba(99,102,241,.4)}
-.app-title{font-weight:800;font-size:14px;letter-spacing:-0.3px}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.app-title{font-weight:800;font-size:14px}
 .app-status{font-size:11px;display:flex;align-items:center;gap:4px;margin-top:1px}
 .dot{width:5px;height:5px;border-radius:50%;display:inline-block;flex-shrink:0}
 #nav{display:flex;gap:4px}
-.nav-btn{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;transition:all .15s;border:1px solid transparent}
+.nav-btn{padding:6px 12px;border-radius:8px;font-size:13px;font-weight:600;transition:all .15s;border:1px solid transparent;background:transparent;color:var(--text3)}
 .nav-btn.active{background:var(--bg3);border-color:var(--border2);color:var(--text)}
-.nav-btn:not(.active){background:transparent;color:var(--text3)}
-#content{flex:1;overflow:hidden;display:flex;flex-direction:column}
 
-/* SETUP SCREEN */
-#setup-screen{display:flex;align-items:center;justify-content:center;flex:1;padding:24px;animation:fadeIn .4s ease}
-.setup-card{max-width:480px;width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:32px}
-.setup-icon{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 20px;box-shadow:0 8px 24px rgba(99,102,241,.5)}
-.setup-title{text-align:center;font-size:22px;font-weight:800;margin-bottom:8px}
-.setup-sub{text-align:center;color:var(--text3);font-size:13px;margin-bottom:28px;line-height:1.6}
-.setup-label{display:block;color:var(--text3);font-size:11px;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
-.setup-input{margin-bottom:16px}
-.btn-primary{width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:12px;font-size:14px;font-weight:700;box-shadow:0 4px 16px rgba(99,102,241,.5);transition:opacity .2s}
-.btn-primary:hover{opacity:.9}
-.setup-note{margin-top:14px;font-size:11px;color:var(--text3);text-align:center;line-height:1.6}
-.setup-note a{color:var(--accent);text-decoration:none}
+.tab{display:none;flex:1;overflow-y:auto}
+.tab.active{display:block}
+.tab-scroll{padding:20px 16px;max-width:900px;margin:0 auto}
 
-/* TABS */
-.tab{display:none;flex:1;overflow:hidden;flex-direction:column}
-.tab.active{display:flex}
-.tab-scroll{flex:1;overflow-y:auto;padding:20px 16px;max-width:900px;width:100%;margin:0 auto}
+/* LOADING */
+#loading-screen{display:flex;align-items:center;justify-content:center;flex:1;flex-direction:column;gap:16px}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
 
-/* KPI GRID */
+/* KPI */
 .kpi-grid{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
-.kpi-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;flex:1;min-width:130px;animation:fadeIn .3s ease}
-.kpi-icon{font-size:18px;margin-bottom:6px}
+.kpi-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;flex:1;min-width:130px}
 .kpi-value{font-size:19px;font-weight:800;letter-spacing:-0.5px}
 .kpi-label{color:var(--text2);font-size:11px;margin-top:2px}
 .kpi-sub{color:var(--text3);font-size:10px;margin-top:3px}
 
-/* STAGE BAR */
 .section-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px}
 .section-title{font-weight:700;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
 .stage-row{margin-bottom:10px}
 .stage-row-top{display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px}
 .stage-bar-bg{background:var(--border);border-radius:4px;height:6px}
 .stage-bar-fill{height:100%;border-radius:4px;transition:width .5s ease}
-
-/* QUICK ACTIONS */
 .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .quick-btn{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;color:var(--text2);font-size:12px;font-weight:600;text-align:left;transition:all .15s}
 .quick-btn:hover{border-color:var(--accent);color:var(--text)}
-.quick-btn-icon{font-size:20px;flex-shrink:0}
 
 /* PIPELINE */
 .pipeline-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
 .filter-row{display:flex;gap:6px;flex-wrap:wrap}
 .filter-chip{padding:4px 10px;border-radius:20px;font-size:11px;border:1px solid var(--border);background:var(--bg3);color:var(--text3);transition:all .15s}
 .filter-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn-add{padding:8px 16px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 2px 8px rgba(99,102,241,.4)}
+.btn-add{padding:8px 16px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:10px;font-size:13px;font-weight:600}
 .deal-form-card{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:18px;margin-bottom:16px;animation:fadeIn .2s ease}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 .form-group label{display:block;color:var(--text3);font-size:11px;margin-bottom:4px}
@@ -106,11 +87,9 @@ select option{background:var(--bg3)}
 .deal-actions{display:flex;gap:6px;flex-shrink:0}
 .deal-btn{padding:5px 10px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;font-size:13px}
 .empty-state{text-align:center;padding:50px 20px;color:var(--text3)}
-.empty-icon{font-size:48px;margin-bottom:12px}
-.empty-title{font-size:15px;font-weight:600;color:var(--text2);margin-bottom:8px}
 
 /* COACH */
-#coach-tab{display:none;flex-direction:column;height:100%}
+#coach-tab{display:none;flex-direction:column;height:calc(100vh - 57px)}
 #coach-tab.active{display:flex}
 .quickbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;gap:8px;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
 .quickbar::-webkit-scrollbar{display:none}
@@ -131,135 +110,70 @@ select option{background:var(--bg3)}
 .typing-dot:nth-child(1){animation:bounce 1.2s ease 0s infinite}
 .typing-dot:nth-child(2){animation:bounce 1.2s ease .2s infinite}
 .typing-dot:nth-child(3){animation:bounce 1.2s ease .4s infinite}
-.marc-empty{text-align:center;padding:60px 20px;animation:fadeIn .3s ease}
-.marc-avatar-big{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;box-shadow:0 8px 24px rgba(99,102,241,.4)}
+.marc-empty{text-align:center;padding:60px 20px}
+.marc-avatar-big{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px}
 #chat-input-bar{padding:12px 16px;background:var(--bg2);border-top:1px solid var(--border);flex-shrink:0}
 .chat-input-inner{max-width:760px;margin:0 auto;display:flex;gap:10px;align-items:flex-end}
 #chat-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:11px 15px;color:var(--text);font-size:14px;resize:none;line-height:1.6;min-height:44px;max-height:120px;overflow-y:auto}
-#send-btn{width:44px;height:44px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(99,102,241,.4);transition:all .2s}
-#send-btn:disabled{background:var(--bg3);box-shadow:none;cursor:not-allowed}
+#send-btn{width:44px;height:44px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+#send-btn:disabled{background:var(--bg3);cursor:not-allowed}
 
-/* INSTALL BANNER */
-#install-banner{display:none;background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(139,92,246,.2));border-bottom:1px solid rgba(99,102,241,.3);padding:10px 16px;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
-#install-banner.show{display:flex}
-.install-text{font-size:12px;color:var(--text2)}
-.install-text strong{color:var(--text)}
-.btn-install{padding:6px 14px;background:var(--accent);color:#fff;border-radius:8px;font-size:12px;font-weight:600}
-.btn-dismiss{padding:6px;background:transparent;color:var(--text3);font-size:16px}
+/* TOAST */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 18px;font-size:13px;opacity:0;transition:all .3s;pointer-events:none;z-index:100;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
-
 <div id="app">
-  <!-- INSTALL BANNER -->
-  <div id="install-banner">
-    <div class="install-text"><strong>📱 Installer comme app</strong> — accès rapide depuis votre bureau/écran d'accueil</div>
-    <div style="display:flex;gap:8px;flex-shrink:0">
-      <button class="btn-install" onclick="installPWA()">Installer</button>
-      <button class="btn-dismiss" onclick="document.getElementById('install-banner').classList.remove('show')">✕</button>
+  <div id="header">
+    <div id="header-left">
+      <div class="logo">⚡</div>
+      <div>
+        <div class="app-title">Pipeline Agent FTS</div>
+        <div class="app-status">
+          <span class="dot" id="status-dot" style="background:var(--yellow);animation:pulse 1s infinite"></span>
+          <span id="status-text" style="color:var(--yellow)">Chargement…</span>
+        </div>
+      </div>
+    </div>
+    <div id="nav">
+      <button class="nav-btn active" onclick="switchTab('dashboard')">📊</button>
+      <button class="nav-btn" onclick="switchTab('pipeline')">📋</button>
+      <button class="nav-btn" onclick="switchTab('coach')">🤖</button>
+      <button class="nav-btn" onclick="syncNow()" title="Synchroniser">🔄</button>
     </div>
   </div>
 
-  <!-- SETUP SCREEN -->
-  <div id="setup-screen">
-    <div class="setup-card">
-      <div class="setup-icon">⚡</div>
-      <div class="setup-title">Pipeline Agent FTS</div>
-      <div class="setup-sub">Saisie ta clé API Anthropic pour activer Marc Dupont, ton coach commercial IA.<br>Elle sera stockée uniquement sur cet appareil.</div>
-      <div class="setup-input">
-        <label class="setup-label">Clé API Anthropic</label>
-        <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." autocomplete="off">
-      </div>
-      <button class="btn-primary" onclick="saveApiKey()">🚀 Activer le Pipeline Agent</button>
-      <div class="setup-note">
-        1. Va sur <a href="https://console.anthropic.com/account/keys" target="_blank">console.anthropic.com/account/keys</a><br>
-        2. Clique <strong style="color:#e2e8f0">Create Key</strong> → copie la clé<br>
-        3. Colle-la ici — stockée uniquement sur cet appareil, jamais envoyée ailleurs.<br><br>
-        <span style="color:#6366f1">✓ À faire une seule fois par appareil</span>
-      </div>
-    </div>
+  <div id="loading-screen">
+    <div class="spinner"></div>
+    <div style="color:var(--text3);font-size:13px">Synchronisation Google Sheets…</div>
   </div>
 
-  <!-- MAIN APP (hidden until setup) -->
-  <div id="main-app" style="display:none;flex-direction:column;flex:1;overflow:hidden">
-
-    <!-- HEADER -->
-    <div id="header">
-      <div id="header-left">
-        <div class="logo">⚡</div>
-        <div>
-          <div class="app-title">Pipeline Agent</div>
-          <div class="app-status" id="status-line">
-            <span class="dot" style="background:var(--green)"></span>
-            <span style="color:var(--green)" id="status-text">Prêt</span>
-          </div>
-        </div>
-      </div>
-      <div id="nav">
-        <button class="nav-btn active" onclick="switchTab('dashboard')">📊</button>
-        <button class="nav-btn" onclick="switchTab('pipeline')">📋</button>
-        <button class="nav-btn" onclick="switchTab('coach')">🤖</button>
-        <button class="nav-btn" onclick="showSettings()" style="margin-left:4px">⚙️</button>
-      </div>
-    </div>
-
-    <!-- DASHBOARD TAB -->
-    <div class="tab active" id="dashboard-tab">
-      <div class="tab-scroll" id="dashboard-scroll">
-        <div class="kpi-grid" id="kpi-grid"></div>
-        <div class="section-card">
-          <div class="section-title">Répartition par stage</div>
-          <div id="stage-bars"></div>
-        </div>
-        <div class="section-card">
-          <div class="section-title">Actions rapides avec Marc</div>
-          <div class="quick-grid" id="quick-actions"></div>
-        </div>
-        <div id="empty-dashboard" style="display:none">
-          <div class="empty-state">
-            <div class="empty-icon">📭</div>
-            <div class="empty-title">Pipeline vide</div>
-            <div style="font-size:13px;margin-bottom:20px">Commence par ajouter tes deals actifs</div>
-            <button class="btn-primary" style="max-width:260px;margin:0 auto" onclick="switchTab('pipeline');setTimeout(openNewDeal,100)">+ Ajouter mon premier deal</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PIPELINE TAB -->
-    <div class="tab" id="pipeline-tab">
-      <div class="tab-scroll">
-        <div class="pipeline-header">
-          <div class="filter-row" id="filter-row">
-            <button class="filter-chip active" data-stage="all" onclick="setFilter(this,'all')">Tous</button>
-          </div>
-          <button class="btn-add" onclick="openNewDeal()">+ Nouveau deal</button>
-        </div>
-        <div id="deal-form-container"></div>
-        <div class="deal-list" id="deal-list"></div>
-      </div>
-    </div>
-
-    <!-- COACH TAB -->
-    <div class="tab" id="coach-tab">
+  <div id="main-content" style="display:none;flex:1;overflow:hidden;display:none;flex-direction:column">
+    <div class="tab active" id="dashboard-tab"><div class="tab-scroll" id="dashboard-scroll"></div></div>
+    <div class="tab" id="pipeline-tab"><div class="tab-scroll" id="pipeline-scroll"></div></div>
+    <div id="coach-tab">
       <div class="quickbar" id="quickbar"></div>
       <div id="chat-messages"></div>
       <div id="chat-input-bar">
         <div class="chat-input-inner">
-          <textarea id="chat-input" placeholder="Parle à Marc : deal bloqué, stratégie compte, forecast…" rows="1" onkeydown="chatKeydown(event)" oninput="autoResize(this)"></textarea>
+          <textarea id="chat-input" placeholder="Parle à Marc : deal bloqué, stratégie, forecast…" rows="1" onkeydown="chatKeydown(event)" oninput="autoResize(this)"></textarea>
           <button id="send-btn" onclick="sendChat()">➤</button>
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
+<div id="toast"></div>
+
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
-const STORAGE_KEY = 'fts-pipeline-deals-v2';
-const CHAT_KEY = 'fts-pipeline-chat-v2';
-const API_KEY_STORAGE = 'fts-api-key';
+const SHEET_ID = '1Hxe8QKPPFd5_3uk4NGTmJvFLYfibois96883zWkPIWA';
+const GOOGLE_API_KEY = 'AIzaSyADJYCPhxZNYgprYfvMkV8I0CUOv3S9-sQ';
+const ANTHROPIC_KEY = localStorage.getItem('fts-anthropic-key') || '';
+const SHEET_NAME = 'Sheet1';
+const CHAT_KEY = 'fts-chat-v2';
 
 const STAGES = [
   {id:'prospect',label:'Prospect',color:'#64748b',prob:10},
@@ -278,80 +192,122 @@ let deals = [];
 let chatHistory = [];
 let currentTab = 'dashboard';
 let currentFilter = 'all';
-let editingDeal = null;
-let apiKey = '';
-let deferredInstall = null;
+let anthropicKey = ANTHROPIC_KEY;
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
-window.addEventListener('load', () => {
-  apiKey = localStorage.getItem(API_KEY_STORAGE) || '';
-  if (apiKey) {
-    showApp();
-  } else {
-    document.getElementById('setup-screen').style.display = 'flex';
+window.addEventListener('load', async () => {
+  // Check Anthropic key
+  if (!anthropicKey) {
+    anthropicKey = prompt('Clé API Anthropic (sk-ant-...) :') || '';
+    if (anthropicKey) localStorage.setItem('fts-anthropic-key', anthropicKey);
   }
 
-  // PWA install prompt
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredInstall = e;
-    if (apiKey) document.getElementById('install-banner').classList.add('show');
-  });
-
-  window.addEventListener('appinstalled', () => {
-    document.getElementById('install-banner').classList.remove('show');
-    deferredInstall = null;
-  });
-});
-
-function saveApiKey() {
-  const val = document.getElementById('api-key-input').value.trim();
-  if (!val.startsWith('sk-ant')) { alert('Clé API invalide. Elle doit commencer par sk-ant...'); return; }
-  apiKey = val;
-  localStorage.setItem(API_KEY_STORAGE, apiKey);
-  showApp();
-}
-
-function showApp() {
-  document.getElementById('setup-screen').style.display = 'none';
-  const main = document.getElementById('main-app');
-  main.style.display = 'flex';
-
-  // Load data
-  try { deals = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(_) { deals = []; }
+  // Load chat from localStorage
   try { chatHistory = JSON.parse(localStorage.getItem(CHAT_KEY)) || []; } catch(_) { chatHistory = []; }
 
-  buildFilterChips();
-  renderDashboard();
-  renderDeals();
+  // Load deals from Google Sheets
+  await loadFromSheets();
+
+  document.getElementById('loading-screen').style.display = 'none';
+  const main = document.getElementById('main-content');
+  main.style.display = 'flex';
+  main.style.flexDirection = 'column';
+  main.style.flex = '1';
+  main.style.overflow = 'hidden';
+
+  renderAll();
+  buildQuickbar();
   renderChat();
-  renderQuickbar();
+});
+
+// ─── GOOGLE SHEETS ───────────────────────────────────────────────────────────
+const SHEETS_BASE = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}`;
+
+async function loadFromSheets() {
+  try {
+    setStatus('sync', '☁️ Sync…');
+    const res = await fetch(`${SHEETS_BASE}/values/${SHEET_NAME}?key=${GOOGLE_API_KEY}`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const rows = data.values || [];
+    if (rows.length <= 1) { deals = []; setStatus('ok', `0 deals · synchro ✓`); return; }
+    const headers = rows[0];
+    deals = rows.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = row[i] || '');
+      return obj;
+    }).filter(d => d.id);
+    setStatus('ok', `${deals.length} deal${deals.length!==1?'s':''} · synchro ✓`);
+  } catch(e) {
+    console.error('Sheets load error:', e);
+    setStatus('error', 'Erreur sync');
+    showToast('❌ Erreur Google Sheets : ' + e.message);
+  }
 }
 
-function saveDeals() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(deals));
-  setStatus('saved');
+async function saveToSheets() {
+  try {
+    setStatus('sync', '💾 Sauvegarde…');
+    // Clear and rewrite all data
+    const headers = ['id','client','product','amount','stage','closing','contact','notes','createdAt'];
+    const values = [headers, ...deals.map(d => headers.map(h => d[h] || ''))];
+
+    // Clear first
+    await fetch(`${SHEETS_BASE}/values/${SHEET_NAME}:clear?key=${GOOGLE_API_KEY}`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({})
+    });
+
+    // Write
+    const res = await fetch(`${SHEETS_BASE}/values/${SHEET_NAME}?valueInputOption=RAW&key=${GOOGLE_API_KEY}`, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({values})
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    setStatus('ok', `${deals.length} deal${deals.length!==1?'s':''} · sauvegardé ✓`);
+    showToast('✅ Sauvegardé dans Google Sheets');
+  } catch(e) {
+    console.error('Sheets save error:', e);
+    setStatus('error', 'Erreur sauvegarde');
+    showToast('❌ Erreur : ' + e.message);
+  }
 }
 
-function saveChat() {
-  localStorage.setItem(CHAT_KEY, JSON.stringify(chatHistory.slice(-40)));
+async function syncNow() {
+  await loadFromSheets();
+  renderAll();
+  showToast('🔄 Pipeline synchronisé');
 }
 
-function setStatus(s) {
-  const dot = document.querySelector('#status-line .dot');
+// ─── STATUS ──────────────────────────────────────────────────────────────────
+function setStatus(type, text) {
+  const dot = document.getElementById('status-dot');
   const txt = document.getElementById('status-text');
-  if (s === 'saving') { dot.style.background='#f59e0b'; txt.style.color='#f59e0b'; txt.textContent='Sauvegarde…'; dot.style.animation='pulse 1s infinite'; }
-  else if (s === 'saved') { dot.style.background='#22c55e'; txt.style.color='#22c55e'; txt.textContent=`${deals.length} deal${deals.length!==1?'s':''} · ${fmt(getMetrics().totalPipeline)} · ✓`; dot.style.animation='none'; }
-  else if (s === 'error') { dot.style.background='#ef4444'; txt.style.color='#ef4444'; txt.textContent='Erreur'; dot.style.animation='none'; }
+  const colors = {ok:'var(--green)', sync:'var(--yellow)', error:'var(--red)'};
+  const c = colors[type] || 'var(--green)';
+  dot.style.background = c;
+  dot.style.animation = type==='sync' ? 'pulse 1s infinite' : 'none';
+  txt.style.color = c;
+  txt.textContent = text;
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
 // ─── UTILS ───────────────────────────────────────────────────────────────────
-const fmt = (n) => new Intl.NumberFormat('fr-TN').format(Math.round(n||0)) + ' DT';
+const fmt = n => new Intl.NumberFormat('fr-TN').format(Math.round(n||0)) + ' DT';
 const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-function daysDiff(d) {
-  if(!d) return null;
-  return Math.ceil((new Date(d)-new Date())/86400000);
-}
+const daysDiff = d => d ? Math.ceil((new Date(d)-new Date())/86400000) : null;
+const escHtml = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+
 function getMetrics() {
   const active = deals.filter(d=>!['won','lost'].includes(d.stage));
   const won = deals.filter(d=>d.stage==='won');
@@ -367,81 +323,128 @@ function getMetrics() {
 
 // ─── TABS ────────────────────────────────────────────────────────────────────
 function switchTab(tab) {
-  document.querySelectorAll('.tab,.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab, #coach-tab').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach((b,i)=>{ if(i<3) b.classList.remove('active'); });
+  const idx = ['dashboard','pipeline','coach'].indexOf(tab);
+  if(idx>=0) document.querySelectorAll('.nav-btn')[idx].classList.add('active');
   document.getElementById(tab+'-tab').classList.add('active');
-  document.querySelectorAll('.nav-btn')[['dashboard','pipeline','coach'].indexOf(tab)].classList.add('active');
   currentTab = tab;
   if(tab==='dashboard') renderDashboard();
-  if(tab==='pipeline') renderDeals();
-  if(tab==='coach') { renderChat(); setTimeout(()=>scrollChatBottom(),50); }
+  if(tab==='pipeline') renderPipeline();
+  if(tab==='coach') { renderChat(); setTimeout(scrollChatBottom, 50); }
 }
+
+function renderAll() { renderDashboard(); renderPipeline(); }
 
 // ─── DASHBOARD ───────────────────────────────────────────────────────────────
 function renderDashboard() {
   const m = getMetrics();
-  const kpiGrid = document.getElementById('kpi-grid');
-  kpiGrid.innerHTML = [
+  const el = document.getElementById('dashboard-scroll');
+  const kpis = [
     {icon:'💼',label:'Pipeline total',value:fmt(m.totalPipeline),sub:`${m.active.length} deals actifs`,color:'#6366f1'},
-    {icon:'⚖️',label:'Weighted pipeline',value:fmt(m.weighted),sub:'Pondéré par prob.',color:'#8b5cf6'},
-    {icon:'✅',label:'Gagné YTD',value:fmt(m.wonTotal),sub:`${m.won.length} deals closés`,color:'#22c55e'},
-    {icon:'⚠️',label:'Deals en retard',value:m.atRisk.length,sub:'Closing dépassé',color:m.atRisk.length>0?'#ef4444':'#64748b'},
-  ].map(k=>`<div class="kpi-card"><div class="kpi-icon">${k.icon}</div><div class="kpi-value" style="color:${k.color}">${k.value}</div><div class="kpi-label">${k.label}</div><div class="kpi-sub">${k.sub}</div></div>`).join('');
-
-  // Stage bars
-  const bars = document.getElementById('stage-bars');
-  const activeStages = STAGES.filter(s=>!['won','lost'].includes(s.id));
-  const vals = activeStages.map(s=>deals.filter(d=>d.stage===s.id).reduce((acc,d)=>acc+(parseFloat(d.amount)||0),0));
-  const maxVal = Math.max(...vals, 1);
-  bars.innerHTML = activeStages.map((s,i)=>{
-    const cnt = deals.filter(d=>d.stage===s.id).length;
-    return `<div class="stage-row">
-      <div class="stage-row-top"><span style="color:var(--text2)">${s.label}</span><span style="color:${s.color};font-weight:600">${fmt(vals[i])} · ${cnt} deal${cnt!==1?'s':''}</span></div>
-      <div class="stage-bar-bg"><div class="stage-bar-fill" style="width:${(vals[i]/maxVal)*100}%;background:${s.color}"></div></div>
-    </div>`;
-  }).join('');
-
-  // Quick actions
-  const qa = document.getElementById('quick-actions');
-  const actions = [
-    {icon:'🔍',label:'Analyser pipeline',prompt:'Analyse mon pipeline complet et donne-moi un diagnostic global avec recommandations prioritaires.'},
-    {icon:'⚠️',label:'Deals à risque',prompt:'Identifie mes deals à risque et propose des actions correctives concrètes.'},
-    {icon:'📈',label:'Forecast ce mois',prompt:'Fais mon forecast réaliste vs optimiste pour ce mois basé sur mon pipeline.'},
-    {icon:'🎯',label:'Priorités semaine',prompt:'Quelles sont mes 3 priorités absolues cette semaine pour maximiser mes chances de closing ?'},
+    {icon:'⚖️',label:'Weighted',value:fmt(m.weighted),sub:'Pondéré prob.',color:'#8b5cf6'},
+    {icon:'✅',label:'Gagné YTD',value:fmt(m.wonTotal),sub:`${m.won.length} closés`,color:'#22c55e'},
+    {icon:'⚠️',label:'En retard',value:m.atRisk.length,sub:'Closing dépassé',color:m.atRisk.length>0?'#ef4444':'#64748b'},
   ];
-  qa.innerHTML = actions.map(a=>`<button class="quick-btn" onclick="quickCoach(${JSON.stringify(a.prompt)})"><span class="quick-btn-icon">${a.icon}</span><span>${a.label}</span></button>`).join('');
 
-  // Empty state
-  document.getElementById('empty-dashboard').style.display = deals.length===0 ? 'block' : 'none';
-  setStatus('saved');
+  const activeStages = STAGES.filter(s=>!['won','lost'].includes(s.id));
+  const vals = activeStages.map(s=>deals.filter(d=>d.stage===s.id).reduce((a,d)=>a+(parseFloat(d.amount)||0),0));
+  const maxVal = Math.max(...vals,1);
+
+  const actions = [
+    {icon:'🔍',label:'Analyser pipeline',prompt:'Analyse mon pipeline complet et donne-moi un diagnostic global.'},
+    {icon:'⚠️',label:'Deals à risque',prompt:'Identifie mes deals à risque et propose des actions correctives.'},
+    {icon:'📈',label:'Forecast ce mois',prompt:'Fais mon forecast réaliste vs optimiste pour ce mois.'},
+    {icon:'🎯',label:'Priorités semaine',prompt:'Quelles sont mes 3 priorités absolues cette semaine ?'},
+  ];
+
+  el.innerHTML = `
+    <div class="kpi-grid">${kpis.map(k=>`<div class="kpi-card"><div style="font-size:18px;margin-bottom:6px">${k.icon}</div><div class="kpi-value" style="color:${k.color}">${k.value}</div><div class="kpi-label">${k.label}</div><div class="kpi-sub">${k.sub}</div></div>`).join('')}</div>
+    <div class="section-card">
+      <div class="section-title">Répartition par stage</div>
+      ${activeStages.map((s,i)=>{
+        const cnt=deals.filter(d=>d.stage===s.id).length;
+        return `<div class="stage-row"><div class="stage-row-top"><span style="color:var(--text2)">${s.label}</span><span style="color:${s.color};font-weight:600">${fmt(vals[i])} · ${cnt}</span></div><div class="stage-bar-bg"><div class="stage-bar-fill" style="width:${(vals[i]/maxVal)*100}%;background:${s.color}"></div></div></div>`;
+      }).join('')}
+    </div>
+    <div class="section-card">
+      <div class="section-title">Actions rapides avec Marc</div>
+      <div class="quick-grid">${actions.map(a=>`<button class="quick-btn" onclick="quickCoach(${JSON.stringify(a.prompt)})"><span style="font-size:20px">${a.icon}</span><span>${a.label}</span></button>`).join('')}</div>
+    </div>
+    ${deals.length===0?`<div class="empty-state"><div style="font-size:48px;margin-bottom:12px">📭</div><div style="font-size:15px;font-weight:600;color:var(--text2);margin-bottom:8px">Pipeline vide</div><div style="font-size:13px;margin-bottom:20px">Ajoute tes deals actifs</div><button style="padding:10px 24px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer" onclick="switchTab('pipeline')">+ Ajouter un deal</button></div>`:''}
+  `;
 }
 
 // ─── PIPELINE ────────────────────────────────────────────────────────────────
-function buildFilterChips() {
-  const row = document.getElementById('filter-row');
-  row.innerHTML = `<button class="filter-chip active" data-stage="all" onclick="setFilter(this,'all')">Tous</button>`
-    + STAGES.map(s=>`<button class="filter-chip" data-stage="${s.id}" onclick="setFilter(this,'${s.id}')">${s.label}</button>`).join('');
+function renderPipeline() {
+  const el = document.getElementById('pipeline-scroll');
+  const filtered = deals.filter(d=>currentFilter==='all'||d.stage===currentFilter);
+
+  const chips = ['all',...STAGES.map(s=>s.id)].map(s=>`<button class="filter-chip${currentFilter===s?' active':''}" onclick="setFilter('${s}')">${s==='all'?'Tous':STAGES.find(x=>x.id===s)?.label}</button>`).join('');
+
+  const dealCards = filtered.length===0
+    ? `<div class="empty-state"><div style="font-size:32px;margin-bottom:8px">📭</div><div style="font-size:13px">Aucun deal dans ce stage</div></div>`
+    : filtered.map(deal=>{
+        const days=daysDiff(deal.closing);
+        const isRisk=days!==null&&days<0&&!['won','lost'].includes(deal.stage);
+        const isSoon=days!==null&&days>=0&&days<=14&&!['won','lost'].includes(deal.stage);
+        const stg=STAGES.find(s=>s.id===deal.stage)||STAGES[0];
+        return `<div class="deal-card${isRisk?' risk':isSoon?' soon':''}">
+          <div class="deal-main">
+            <div class="deal-top">
+              <span class="deal-name">${deal.client}</span>
+              <span class="badge" style="background:${stg.color}22;color:${stg.color};border:1px solid ${stg.color}44">${stg.label}</span>
+              ${isRisk?`<span class="badge-risk">⚠️ Retard ${Math.abs(days)}j</span>`:''}
+              ${isSoon?`<span class="badge-soon">🔥 J-${days}</span>`:''}
+            </div>
+            <div class="deal-meta">
+              <span class="deal-amount">${deal.amount?fmt(parseFloat(deal.amount)):'—'}</span>
+              ${deal.product?`<span>📦 ${deal.product}</span>`:''}
+              ${deal.contact?`<span>👤 ${deal.contact}</span>`:''}
+              ${deal.closing?`<span>📅 ${new Date(deal.closing).toLocaleDateString('fr-TN')}</span>`:''}
+            </div>
+            ${deal.notes?`<div class="deal-notes">"${escHtml(deal.notes)}"</div>`:''}
+          </div>
+          <div class="deal-actions">
+            <button class="deal-btn" style="color:#a5b4fc" onclick="quickCoach('Deal coaching sur ${deal.client} — ${deal.product}')">🤖</button>
+            <button class="deal-btn" style="color:var(--text2)" onclick="openEditDeal('${deal.id}')">✏️</button>
+            <button class="deal-btn" style="color:var(--red)" onclick="deleteDeal('${deal.id}')">🗑</button>
+          </div>
+        </div>`;
+      }).join('');
+
+  el.innerHTML = `
+    <div class="pipeline-header">
+      <div class="filter-row">${chips}</div>
+      <button class="btn-add" onclick="openNewDeal()">+ Nouveau deal</button>
+    </div>
+    <div id="deal-form-container"></div>
+    <div class="deal-list">${dealCards}</div>
+  `;
 }
 
-function setFilter(el, stage) {
-  document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
+function setFilter(stage) {
   currentFilter = stage;
-  renderDeals();
+  renderPipeline();
 }
 
 function openNewDeal() {
-  editingDeal = {id:null,client:'',product:'',amount:'',stage:'prospect',closing:'',contact:'',notes:'',createdAt:null};
-  renderDealForm();
+  renderDealForm({id:'',client:'',product:'',amount:'',stage:'prospect',closing:'',contact:'',notes:''});
 }
 
-function renderDealForm(deal) {
-  const d = deal || editingDeal;
+function openEditDeal(id) {
+  const deal = deals.find(d=>d.id===id);
+  if(deal) renderDealForm(deal);
+}
+
+function renderDealForm(d) {
   const c = document.getElementById('deal-form-container');
+  if(!c) return;
   c.innerHTML = `<div class="deal-form-card">
     <div style="font-weight:700;font-size:14px;margin-bottom:16px;color:#a5b4fc">${d.id?'✏️ Modifier — '+d.client:'➕ Nouveau deal'}</div>
     <div class="form-grid">
-      <div class="form-group"><label>Client *</label><select id="f-client"><option value="">Banque…</option>${BANKS.map(b=>`<option value="${b}"${d.client===b?' selected':''}>${b}</option>`).join('')}</select></div>
-      <div class="form-group"><label>Produit *</label><select id="f-product"><option value="">Solution…</option>${PRODUCTS.map(p=>`<option value="${p}"${d.product===p?' selected':''}>${p}</option>`).join('')}</select></div>
+      <div class="form-group"><label>Client *</label><select id="f-client"><option value="">Banque…</option>${BANKS.map(b=>`<option${d.client===b?' selected':''}>${b}</option>`).join('')}</select></div>
+      <div class="form-group"><label>Produit *</label><select id="f-product"><option value="">Solution…</option>${PRODUCTS.map(p=>`<option${d.product===p?' selected':''}>${p}</option>`).join('')}</select></div>
       <div class="form-group"><label>Montant (DT HT) *</label><input type="number" id="f-amount" placeholder="ex: 250000" value="${d.amount||''}"></div>
       <div class="form-group"><label>Stage *</label><select id="f-stage">${STAGES.map(s=>`<option value="${s.id}"${d.stage===s.id?' selected':''}>${s.label}</option>`).join('')}</select></div>
       <div class="form-group"><label>Date closing</label><input type="date" id="f-closing" value="${d.closing||''}"></div>
@@ -449,287 +452,140 @@ function renderDealForm(deal) {
     </div>
     <div class="form-group" style="margin-bottom:14px"><label>Notes / Contexte</label><textarea id="f-notes" rows="3" style="resize:vertical">${d.notes||''}</textarea></div>
     <div class="form-actions">
-      <button class="btn-cancel" onclick="cancelDealForm()">Annuler</button>
+      <button class="btn-cancel" onclick="cancelForm()">Annuler</button>
       <button class="btn-save" onclick="saveDealForm('${d.id||''}')">💾 Sauvegarder</button>
     </div>
   </div>`;
+  c.scrollIntoView({behavior:'smooth'});
 }
 
-function cancelDealForm() {
-  document.getElementById('deal-form-container').innerHTML = '';
-  editingDeal = null;
+function cancelForm() {
+  const c = document.getElementById('deal-form-container');
+  if(c) c.innerHTML='';
 }
 
-function saveDealForm(existingId) {
-  const client = document.getElementById('f-client').value;
-  const product = document.getElementById('f-product').value;
-  const amount = document.getElementById('f-amount').value;
-  if(!client||!product||!amount) { alert('Client, produit et montant sont obligatoires'); return; }
-  const deal = {
-    id: existingId || genId(),
-    client, product, amount,
-    stage: document.getElementById('f-stage').value,
-    closing: document.getElementById('f-closing').value,
-    contact: document.getElementById('f-contact').value,
-    notes: document.getElementById('f-notes').value,
-    createdAt: existingId ? (deals.find(d=>d.id===existingId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
+async function saveDealForm(existingId) {
+  const client=document.getElementById('f-client').value;
+  const product=document.getElementById('f-product').value;
+  const amount=document.getElementById('f-amount').value;
+  if(!client||!product||!amount){alert('Client, produit et montant obligatoires');return;}
+  const deal={
+    id:existingId||genId(), client, product, amount,
+    stage:document.getElementById('f-stage').value,
+    closing:document.getElementById('f-closing').value,
+    contact:document.getElementById('f-contact').value,
+    notes:document.getElementById('f-notes').value,
+    createdAt:existingId?(deals.find(d=>d.id===existingId)?.createdAt||new Date().toISOString()):new Date().toISOString(),
   };
-  if(existingId) { deals = deals.map(d=>d.id===existingId?deal:d); }
-  else { deals.push(deal); }
-  cancelDealForm();
-  saveDeals();
-  renderDeals();
-  renderDashboard();
+  if(existingId) deals=deals.map(d=>d.id===existingId?deal:d);
+  else deals.push(deal);
+  cancelForm();
+  await saveToSheets();
+  renderAll();
 }
 
-function renderDeals() {
-  const list = document.getElementById('deal-list');
-  const filtered = deals.filter(d=>currentFilter==='all'||d.stage===currentFilter);
-  if(filtered.length===0) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Aucun deal dans ce stage</div></div>`;
-    return;
-  }
-  list.innerHTML = filtered.map(deal=>{
-    const days = daysDiff(deal.closing);
-    const isRisk = days!==null&&days<0&&!['won','lost'].includes(deal.stage);
-    const isSoon = days!==null&&days>=0&&days<=14&&!['won','lost'].includes(deal.stage);
-    const stg = STAGES.find(s=>s.id===deal.stage)||STAGES[0];
-    return `<div class="deal-card${isRisk?' risk':isSoon?' soon':''}">
-      <div class="deal-main">
-        <div class="deal-top">
-          <span class="deal-name">${deal.client}</span>
-          <span class="badge" style="background:${stg.color}22;color:${stg.color};border:1px solid ${stg.color}44">${stg.label}</span>
-          ${isRisk?`<span class="badge-risk">⚠️ En retard ${Math.abs(days)}j</span>`:''}
-          ${isSoon?`<span class="badge-soon">🔥 J-${days}</span>`:''}
-        </div>
-        <div class="deal-meta">
-          <span class="deal-amount">${deal.amount?fmt(parseFloat(deal.amount)):'—'}</span>
-          ${deal.product?`<span>📦 ${deal.product}</span>`:''}
-          ${deal.contact?`<span>👤 ${deal.contact}</span>`:''}
-          ${deal.closing?`<span>📅 ${new Date(deal.closing).toLocaleDateString('fr-TN')}</span>`:''}
-        </div>
-        ${deal.notes?`<div class="deal-notes">"${deal.notes}"</div>`:''}
-      </div>
-      <div class="deal-actions">
-        <button class="deal-btn" style="color:#a5b4fc" onclick="quickCoach('Deal coaching sur ${deal.client} — ${deal.product} : ${(deal.notes||'aide-moi à avancer').replace(/'/g,"\\'")}')">🤖</button>
-        <button class="deal-btn" style="color:var(--text2)" onclick="editDeal('${deal.id}')">✏️</button>
-        <button class="deal-btn" style="color:var(--red)" onclick="deleteDeal('${deal.id}')">🗑</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function editDeal(id) {
-  editingDeal = deals.find(d=>d.id===id);
-  renderDealForm(editingDeal);
-  document.getElementById('deal-form-container').scrollIntoView({behavior:'smooth'});
-}
-
-function deleteDeal(id) {
+async function deleteDeal(id) {
   if(!confirm('Supprimer ce deal ?')) return;
-  deals = deals.filter(d=>d.id!==id);
-  saveDeals();
-  renderDeals();
-  renderDashboard();
+  deals=deals.filter(d=>d.id!==id);
+  await saveToSheets();
+  renderAll();
 }
 
 // ─── COACH ───────────────────────────────────────────────────────────────────
-const QUICK_PROMPTS = [
-  {label:'📊 Analyser pipeline',prompt:'Analyse mon pipeline complet et donne-moi un diagnostic avec recommandations.'},
-  {label:'⚠️ Deals à risque',prompt:'Identifie mes deals à risque et propose des actions correctives concrètes.'},
-  {label:'📈 Forecast',prompt:'Fais mon forecast réaliste vs optimiste pour ce mois.'},
-  {label:'🎯 Priorités semaine',prompt:'Quelles sont mes 3 priorités absolues cette semaine ?'},
-  {label:'🔄 Reset chat',prompt:null},
-];
-
-function renderQuickbar() {
+function buildQuickbar() {
   const bar = document.getElementById('quickbar');
-  bar.innerHTML = QUICK_PROMPTS.map(q=>
-    `<button class="quick-chip" onclick="${q.prompt?`sendCoach(${JSON.stringify(q.prompt)})`:'resetChat()'}">${q.label}</button>`
-  ).join('');
+  const prompts = [
+    {label:'📊 Analyser pipeline',prompt:'Analyse mon pipeline complet et donne-moi un diagnostic avec recommandations.'},
+    {label:'⚠️ Deals à risque',prompt:'Identifie mes deals à risque et propose des actions correctives.'},
+    {label:'📈 Forecast',prompt:'Fais mon forecast réaliste vs optimiste pour ce mois.'},
+    {label:'🎯 Priorités semaine',prompt:'Quelles sont mes 3 priorités absolues cette semaine ?'},
+    {label:'🔄 Reset chat',prompt:null},
+  ];
+  bar.innerHTML = prompts.map(p=>`<button class="quick-chip" onclick="${p.prompt?`quickCoach(${JSON.stringify(p.prompt)})`:'resetChat()'}">${p.label}</button>`).join('');
 }
 
 function renderChat() {
   const el = document.getElementById('chat-messages');
-  if(chatHistory.length===0) {
-    el.innerHTML = `<div class="marc-empty">
-      <div class="marc-avatar-big">🤖</div>
-      <div style="font-weight:800;font-size:16px;margin-bottom:8px">Marc Dupont · Agent Commercial</div>
-      <div style="color:var(--text3);font-size:13px;line-height:1.7;max-width:380px;margin:0 auto">
-        J'ai accès à ton pipeline en temps réel.<br>Dis-moi ce que tu veux analyser.
-      </div>
-      ${deals.length===0?`<div style="margin-top:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px 16px;font-size:13px;color:#f59e0b;max-width:340px;margin:20px auto 0">⚠️ Pipeline vide — ajoute des deals d'abord.</div>`:''}
-    </div>`;
+  if(chatHistory.length===0){
+    el.innerHTML=`<div class="marc-empty"><div class="marc-avatar-big">🤖</div><div style="font-weight:800;font-size:16px;margin-bottom:8px">Marc Dupont · Agent Commercial</div><div style="color:var(--text3);font-size:13px;line-height:1.7">J'ai accès à ton pipeline Google Sheets en temps réel.<br>Dis-moi ce que tu veux analyser.</div></div>`;
     return;
   }
-  el.innerHTML = chatHistory.map(m=>`
-    <div class="msg-wrap ${m.role==='user'?'user':''}">
-      <div class="msg-avatar ${m.role==='user'?'user':'marc'}">${m.role==='user'?'N':'M'}</div>
-      <div class="msg-bubble ${m.role==='user'?'user':'marc'}">${escHtml(m.content)}</div>
-    </div>`).join('');
+  el.innerHTML=chatHistory.map(m=>`<div class="msg-wrap ${m.role==='user'?'user':''}"><div class="msg-avatar ${m.role==='user'?'user':'marc'}">${m.role==='user'?'N':'M'}</div><div class="msg-bubble ${m.role==='user'?'user':'marc'}">${escHtml(m.content)}</div></div>`).join('');
   scrollChatBottom();
 }
 
-function scrollChatBottom() {
-  const el = document.getElementById('chat-messages');
-  el.scrollTop = el.scrollHeight;
+function scrollChatBottom(){const el=document.getElementById('chat-messages');el.scrollTop=el.scrollHeight;}
+
+function resetChat(){chatHistory=[];localStorage.removeItem(CHAT_KEY);renderChat();}
+
+async function quickCoach(prompt) {
+  switchTab('coach');
+  await syncNow();
+  setTimeout(()=>sendCoach(prompt),200);
 }
 
-function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+function sendChat(){const v=document.getElementById('chat-input').value.trim();if(v)sendCoach(v);}
 
-function showTyping() {
-  const el = document.getElementById('chat-messages');
-  const div = document.createElement('div');
-  div.id = 'typing-indicator';
-  div.className = 'typing-wrap';
-  div.innerHTML = `<div class="msg-avatar marc">M</div><div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
-  el.appendChild(div);
-  scrollChatBottom();
-}
+function chatKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}
 
-function hideTyping() {
-  const t = document.getElementById('typing-indicator');
-  if(t) t.remove();
-}
-
-function resetChat() {
-  chatHistory = [];
-  saveChat();
-  renderChat();
-}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
 
 async function sendCoach(text) {
-  if(!text.trim()) return;
+  if(!text.trim()||!anthropicKey) return;
   chatHistory.push({role:'user',content:text});
-  if(currentTab==='coach') renderChat();
-  else switchTab('coach');
-
+  renderChat();
   document.getElementById('chat-input').value='';
   document.getElementById('chat-input').style.height='44px';
   document.getElementById('send-btn').disabled=true;
-  showTyping();
 
-  const m = getMetrics();
-  const pipelineJson = JSON.stringify(deals.map(d=>({
-    client:d.client, produit:d.product,
-    montant_DT:parseFloat(d.amount)||0,
-    stage:d.stage, closing:d.closing||'non défini',
-    contact:d.contact, notes:d.notes,
+  // Show typing
+  const el=document.getElementById('chat-messages');
+  const typing=document.createElement('div');
+  typing.id='typing';
+  typing.className='typing-wrap';
+  typing.innerHTML=`<div class="msg-avatar marc">M</div><div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  el.appendChild(typing);
+  scrollChatBottom();
+
+  const m=getMetrics();
+  const pipelineJson=JSON.stringify(deals.map(d=>({
+    client:d.client,produit:d.product,montant_DT:parseFloat(d.amount)||0,
+    stage:d.stage,closing:d.closing||'non défini',contact:d.contact,notes:d.notes,
     jours_avant_closing:d.closing?daysDiff(d.closing):null,
   })),null,2);
 
-  const systemPrompt = `Tu es Marc Dupont, Directeur Commercial B2B avec 20 ans d'expérience IT banking. Tu coaches Nabli (SAM chez FTS, marché bancaire tunisien).
+  const system=`Tu es Marc Dupont, Directeur Commercial B2B 20 ans expérience IT banking. Tu coaches Nabli (SAM FTS, marché bancaire tunisien).
 
-PIPELINE ACTUEL (JSON) :
+PIPELINE ACTUEL (Google Sheets, temps réel) :
 ${pipelineJson}
 
-MÉTRIQUES :
-Pipeline total: ${fmt(m.totalPipeline)} | Weighted: ${fmt(m.weighted)} | Deals actifs: ${m.active.length} | Gagné YTD: ${fmt(m.wonTotal)} | Deals en retard: ${m.atRisk.length}
+MÉTRIQUES : Pipeline: ${fmt(m.totalPipeline)} | Weighted: ${fmt(m.weighted)} | Actifs: ${m.active.length} | Gagné YTD: ${fmt(m.wonTotal)} | En retard: ${m.atRisk.length}
 
-TON RÔLE EN MODE AGENT :
-- Tu AS ACCÈS au pipeline réel de Nabli — analyse-le concrètement
-- Identifie les deals à risque (closing dépassé, stagnation de stage)
-- Recommande des actions précises deal par deal
-- Challenge les probabilités et les montants
-- Donne un forecast réaliste vs optimiste
-- Termine chaque analyse par : 🎯 TOP 3 ACTIONS · ⚠️ RISQUES · 📊 FORECAST
-
-STYLE : Direct, exigeant, bienveillant. Français + jargon B2B anglais.`;
+STYLE : Direct, exigeant, bienveillant. Français + jargon B2B. Termine par : 🎯 TOP 3 ACTIONS · ⚠️ RISQUES · 📊 FORECAST`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-6',
-        max_tokens:1000,
-        system:systemPrompt,
-        messages:chatHistory.slice(-20),
-      })
+      headers:{'Content-Type':'application/json','x-api-key':anthropicKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system,messages:chatHistory.slice(-20)})
     });
-    const data = await res.json();
+    const data=await res.json();
     if(data.error) throw new Error(data.error.message);
-    const reply = data.content?.[0]?.text || 'Erreur API.';
-    chatHistory.push({role:'assistant',content:reply});
-    saveChat();
+    chatHistory.push({role:'assistant',content:data.content?.[0]?.text||'Erreur.'});
+    localStorage.setItem(CHAT_KEY,JSON.stringify(chatHistory.slice(-40)));
   } catch(e) {
     chatHistory.push({role:'assistant',content:'❌ Erreur : '+e.message});
   }
-  hideTyping();
+
+  document.getElementById('typing')?.remove();
   renderChat();
   document.getElementById('send-btn').disabled=false;
 }
 
-function sendChat() {
-  const val = document.getElementById('chat-input').value.trim();
-  if(val) sendCoach(val);
-}
-
-function chatKeydown(e) {
-  if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendChat(); }
-}
-
-function autoResize(el) {
-  el.style.height='auto';
-  el.style.height=Math.min(el.scrollHeight,120)+'px';
-}
-
-function quickCoach(prompt) {
-  switchTab('coach');
-  setTimeout(()=>sendCoach(prompt),100);
-}
-
-// ─── SETTINGS ────────────────────────────────────────────────────────────────
-function showSettings() {
-  const masked = apiKey ? apiKey.slice(0,12) + '...' + apiKey.slice(-4) : 'Non configurée';
-  const newKey = prompt('Clé API actuelle : ' + masked + '\n\nNouvelle clé (laisser vide pour annuler) :', '');
-  if(newKey && newKey.startsWith('sk-ant')) {
-    apiKey = newKey;
-    localStorage.setItem(API_KEY_STORAGE, apiKey);
-    alert('Clé API mise à jour ✓');
-  } else if(newKey === 'reset') {
-    localStorage.removeItem(API_KEY_STORAGE);
-    location.reload();
-  }
-}
-
-// ─── PWA INSTALL ─────────────────────────────────────────────────────────────
-async function installPWA() {
-  if(deferredInstall) {
-    deferredInstall.prompt();
-    const result = await deferredInstall.userChoice;
-    if(result.outcome==='accepted') document.getElementById('install-banner').classList.remove('show');
-  }
-}
-
-// ─── PWA MANIFEST (inline) ───────────────────────────────────────────────────
-const manifest = {
-  name:'Pipeline Agent FTS',
-  short_name:'Pipeline',
-  description:'Coach commercial B2B - FTS',
-  start_url:'.',
-  display:'standalone',
-  background_color:'#020617',
-  theme_color:'#020617',
-  icons:[{src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%236366f1"/><text y=".9em" font-size="80" x="10">⚡</text></svg>',sizes:'any',type:'image/svg+xml'}]
-};
-const blob = new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
-document.getElementById('manifest-placeholder').href = URL.createObjectURL(blob);
-
-// Service Worker pour cache offline
-if('serviceWorker' in navigator) {
-  const swCode = `
-    const CACHE='pipeline-v1';
-    self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['.']))));
-    self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{
-      const clone=res.clone();
-      caches.open(CACHE).then(c=>c.put(e.request,clone));
-      return res;
-    }))));
-  `;
-  const swBlob = new Blob([swCode],{type:'application/javascript'});
-  navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(()=>{});
-}
+// PWA manifest
+const manifest={name:'Pipeline FTS',short_name:'Pipeline',start_url:'.',display:'standalone',background_color:'#020617',theme_color:'#020617',icons:[{src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%236366f1"/><text y=".9em" font-size="80" x="10">⚡</text></svg>',sizes:'any',type:'image/svg+xml'}]};
+const blob=new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
+const link=document.createElement('link');link.rel='manifest';link.href=URL.createObjectURL(blob);document.head.appendChild(link);
 </script>
 </body>
 </html>
