@@ -170,7 +170,7 @@ select option{background:var(--bg3)}
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxncZJjKQQSHtBlWmUxRr4-zMEJQQf8_yFeiWM9xZ8TIefX91HMhVvLl8j7t37A55i5CQ/exec';
-const ANTHROPIC_KEY = localStorage.getItem('fts-anthropic-key') || '';
+const ANTHROPIC_KEY = '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';
 const CHAT_KEY = 'fts-chat-v2';
 
 const STAGES = [
@@ -194,12 +194,6 @@ let anthropicKey = ANTHROPIC_KEY;
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
-  // Check Anthropic key
-  if (!anthropicKey) {
-    anthropicKey = prompt('Clé API Anthropic (sk-ant-...) :') || '';
-    if (anthropicKey) localStorage.setItem('fts-anthropic-key', anthropicKey);
-  }
-
   // Load chat from localStorage
   try { chatHistory = JSON.parse(localStorage.getItem(CHAT_KEY)) || []; } catch(_) { chatHistory = []; }
 
