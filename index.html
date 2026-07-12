@@ -169,10 +169,8 @@ select option{background:var(--bg3)}
 
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
-const SHEET_ID = '1Hxe8QKPPFd5_3uk4NGTmJvFLYfibois96883zWkPIWA';
-const GOOGLE_API_KEY = 'AIzaSyADJYCPhxZNYgprYfvMkV8I0CUOv3S9-sQ';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxncZJjKQQSHtBlWmUxRr4-zMEJQQf8_yFeiWM9xZ8TIefX91HMhVvLl8j7t37A55i5CQ/exec';
 const ANTHROPIC_KEY = localStorage.getItem('fts-anthropic-key') || '';
-const SHEET_NAME = 'Sheet1';
 const CHAT_KEY = 'fts-chat-v2';
 
 const STAGES = [
@@ -221,58 +219,44 @@ window.addEventListener('load', async () => {
 });
 
 // ─── GOOGLE SHEETS ───────────────────────────────────────────────────────────
-const SHEETS_BASE = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}`;
 
 async function loadFromSheets() {
   try {
     setStatus('sync', '☁️ Sync…');
-    const res = await fetch(`${SHEETS_BASE}/values/${SHEET_NAME}?key=${GOOGLE_API_KEY}`);
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    const rows = data.values || [];
-    if (rows.length <= 1) { deals = []; setStatus('ok', `0 deals · synchro ✓`); return; }
+    const res = await fetch(SCRIPT_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    if (!Array.isArray(rows) || rows.length <= 1) { deals = []; setStatus('ok', '0 deals · synchro ✓'); return; }
     const headers = rows[0];
     deals = rows.slice(1).map(row => {
       const obj = {};
-      headers.forEach((h, i) => obj[h] = row[i] || '');
+      headers.forEach((h, i) => { obj[h] = (row[i] !== undefined ? row[i] : '').toString(); });
       return obj;
     }).filter(d => d.id);
     setStatus('ok', `${deals.length} deal${deals.length!==1?'s':''} · synchro ✓`);
   } catch(e) {
     console.error('Sheets load error:', e);
     setStatus('error', 'Erreur sync');
-    showToast('❌ Erreur Google Sheets : ' + e.message);
+    showToast('❌ ' + e.message);
   }
 }
 
 async function saveToSheets() {
   try {
     setStatus('sync', '💾 Sauvegarde…');
-    // Clear and rewrite all data
     const headers = ['id','client','product','amount','stage','closing','contact','notes','createdAt'];
     const values = [headers, ...deals.map(d => headers.map(h => d[h] || ''))];
-
-    // Clear first
-    await fetch(`${SHEETS_BASE}/values/${SHEET_NAME}:clear?key=${GOOGLE_API_KEY}`, {
+    const res = await fetch(SCRIPT_URL, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({})
+      body: JSON.stringify(values)
     });
-
-    // Write
-    const res = await fetch(`${SHEETS_BASE}/values/${SHEET_NAME}?valueInputOption=RAW&key=${GOOGLE_API_KEY}`, {
-      method: 'PUT',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({values})
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     setStatus('ok', `${deals.length} deal${deals.length!==1?'s':''} · sauvegardé ✓`);
     showToast('✅ Sauvegardé dans Google Sheets');
   } catch(e) {
     console.error('Sheets save error:', e);
     setStatus('error', 'Erreur sauvegarde');
-    showToast('❌ Erreur : ' + e.message);
+    showToast('❌ ' + e.message);
   }
 }
 
