@@ -249,7 +249,7 @@ const STAGES = [
 ];
 const PRODUCTS = ['Cisco SD-WAN','Cisco ACI','Fortinet NGFW','Dell HCI','IBM Power','IBM Storage','Veeam','Forcepoint','Autre'];
 const BANKS = ['UIB','ATB','BIAT','STB','BNA','Amen Bank','Al Baraka','Wifak Bank','QNBT','Banque Zitouna','BH Bank','Attijari','Autre'];
-const DEAL_HEADERS = ['id','client','product','amount','stage','closing','contact','notes','createdAt','category','subcat'];
+const DEAL_HEADERS = ['id','client','product','amount','stage','closing','contact','notes','createdAt','category','subcat','margin'];
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let deals = [];
@@ -431,7 +431,13 @@ function getMetrics() {
   },0);
   const wonTotal = won.reduce((s,d)=>s+(parseFloat(d.amount)||0),0);
   const atRisk = active.filter(d=>{ const dd=daysDiff(d.closing); return dd!==null&&dd<0; });
-  return {active,won,totalPipeline,weighted,wonTotal,atRisk};
+  // Weighted avg margin on won deals
+  const wonWithMargin = won.filter(d=>parseFloat(d.margin)>0&&parseFloat(d.amount)>0);
+  const marginBase = wonWithMargin.reduce((s,d)=>s+(parseFloat(d.amount)||0),0);
+  const marginWeighted = wonWithMargin.reduce((s,d)=>s+(parseFloat(d.amount)||0)*(parseFloat(d.margin)||0),0);
+  const avgMargin = marginBase>0 ? marginWeighted/marginBase : 0;
+  const marginValue = won.reduce((s,d)=>s+((parseFloat(d.amount)||0)*(parseFloat(d.margin)||0)/100),0);
+  return {active,won,totalPipeline,weighted,wonTotal,atRisk,avgMargin,marginValue};
 }
 
 function getCatTotals() {
@@ -483,6 +489,7 @@ function renderDashboard() {
     {icon:'💼',label:'Pipeline total',value:fmt(m.totalPipeline),sub:`${m.active.length} deals actifs`,color:'#6366f1'},
     {icon:'⚖️',label:'Weighted',value:fmt(m.weighted),sub:'Pondéré prob.',color:'#8b5cf6'},
     {icon:'✅',label:'Gagné YTD',value:fmt(m.wonTotal),sub:`${m.won.length} closés`,color:'#22c55e'},
+    {icon:'📊',label:'Marge moyenne',value:m.avgMargin.toFixed(1)+'%',sub:`Valeur : ${fmt(m.marginValue)}`,color:'#22d3ee'},
     {icon:'⚠️',label:'En retard',value:m.atRisk.length,sub:'Closing dépassé',color:m.atRisk.length>0?'#ef4444':'#64748b'},
   ];
 
@@ -627,6 +634,7 @@ function renderPipeline() {
             </div>
             <div class="deal-meta">
               <span class="deal-amount">${deal.amount?fmt(parseFloat(deal.amount)):'—'}</span>
+              ${deal.margin&&parseFloat(deal.margin)>0?`<span style="color:#22d3ee">📊 ${deal.margin}% marge</span>`:''}
               ${deal.product?`<span>📦 ${deal.product}</span>`:''}
               ${deal.contact?`<span>👤 ${deal.contact}</span>`:''}
               ${deal.closing?`<span>📅 ${new Date(deal.closing).toLocaleDateString('fr-TN')}</span>`:''}
@@ -665,6 +673,7 @@ function renderDealForm(d) {
       <div class="form-group"><label>Client *</label><select id="f-client"><option value="">Banque…</option>${BANKS.map(b=>`<option${d.client===b?' selected':''}>${b}</option>`).join('')}</select></div>
       <div class="form-group"><label>Produit *</label><select id="f-product"><option value="">Solution…</option>${PRODUCTS.map(p=>`<option${d.product===p?' selected':''}>${p}</option>`).join('')}</select></div>
       <div class="form-group"><label>Montant (DT HT) *</label><input type="number" id="f-amount" placeholder="ex: 250000" value="${d.amount||''}"></div>
+      <div class="form-group"><label>Marge (%)</label><input type="number" id="f-margin" placeholder="ex: 18" value="${d.margin||''}"></div>
       <div class="form-group"><label>Stage *</label><select id="f-stage">${STAGES.map(s=>`<option value="${s.id}"${d.stage===s.id?' selected':''}>${s.label}</option>`).join('')}</select></div>
       <div class="form-group"><label>Catégorie</label><select id="f-category" onchange="updateSubcat()"><option value="">Choisir…</option>${CATEGORIES.map(c=>`<option value="${c.id}"${d.category===c.id?' selected':''}>${c.label}</option>`).join('')}</select></div>
       <div class="form-group" id="f-subcat-grp" style="${d.category==='infra'?'':'display:none'}"><label>Sous-catégorie</label><select id="f-subcat"><option value="">Choisir…</option><option value="dc"${d.subcat==='dc'?' selected':''}>DC</option><option value="networking"${d.subcat==='networking'?' selected':''}>Networking</option><option value="cybersec"${d.subcat==='cybersec'?' selected':''}>Cybersécurité</option></select></div>
@@ -699,6 +708,7 @@ async function saveDealForm(existingId) {
     notes:document.getElementById('f-notes').value,
     category:document.getElementById('f-category')?.value||'',
     subcat:document.getElementById('f-subcat')?.value||'',
+    margin:document.getElementById('f-margin')?.value||'',
     createdAt:existingId?(deals.find(d=>d.id===existingId)?.createdAt||new Date().toISOString()):new Date().toISOString(),
   };
   if(existingId) deals=deals.map(d=>d.id===existingId?deal:d);
@@ -763,6 +773,7 @@ async function sendCoach(text) {
 
   const pipelineJson=JSON.stringify(deals.map(d=>({
     client:d.client,produit:d.product,montant_DT:parseFloat(d.amount)||0,
+    marge_pct:parseFloat(d.margin)||0,
     stage:d.stage,closing:d.closing||'non défini',contact:d.contact,notes:d.notes,
     categorie:d.category,sous_categorie:d.subcat,
     jours_avant_closing:d.closing?daysDiff(d.closing):null,
@@ -781,7 +792,7 @@ ANNÉE : ${currentYear}
 PIPELINE (temps réel Google Sheets) :
 ${pipelineJson}
 
-MÉTRIQUES : Pipeline: ${fmt(m.totalPipeline)} | Weighted: ${fmt(m.weighted)} | Gagné: ${fmt(m.wonTotal)} | En retard: ${m.atRisk.length}
+MÉTRIQUES : Pipeline: ${fmt(m.totalPipeline)} | Weighted: ${fmt(m.weighted)} | Gagné: ${fmt(m.wonTotal)} | Marge moyenne: ${m.avgMargin.toFixed(1)}% (valeur ${fmt(m.marginValue)}) | En retard: ${m.atRisk.length}
 TARGETS ${currentYear} : ${targetsStr}
 
 STYLE : Direct, exigeant, bienveillant. Français + jargon B2B. Termine par : 🎯 TOP 3 ACTIONS · ⚠️ RISQUES · 📊 FORECAST`;
