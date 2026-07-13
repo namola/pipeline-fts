@@ -347,6 +347,30 @@ async function syncAll() {
   }
 }
 
+function cleanDate(val) {
+  if (!val) return '';
+  const s = val.toString();
+  // ISO datetime -> YYYY-MM-DD
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})T/);
+  if (m) {
+    // Use the date part but adjust for timezone shift (Sheets stores midnight local as prev-day 23:00 UTC)
+    const d = new Date(s);
+    const y = d.getFullYear();
+    const mo = String(d.getMonth()+1).padStart(2,'0');
+    const da = String(d.getDate()).padStart(2,'0');
+    return `${y}-${mo}-${da}`;
+  }
+  return s;
+}
+
+function cleanMargin(val) {
+  if (!val) return '';
+  const s = val.toString();
+  // If it looks like a date (corrupted), return empty
+  if (/T\d{2}:\d{2}/.test(s) || /^\d{4}-\d{2}-\d{2}/.test(s)) return '';
+  return s;
+}
+
 async function loadDeals() {
   const rows = await sheetGet('getDeals', {year: currentYear});
   if (!Array.isArray(rows) || rows.length <= 1) { deals = []; return; }
@@ -354,6 +378,9 @@ async function loadDeals() {
   deals = rows.slice(1).map(row => {
     const obj = {};
     headers.forEach((h, i) => { obj[h] = (row[i] !== undefined ? row[i] : '').toString(); });
+    // Clean date fields corrupted by Sheets ISO format
+    if (obj.closing) obj.closing = cleanDate(obj.closing);
+    if (obj.margin) obj.margin = cleanMargin(obj.margin);
     return obj;
   }).filter(d => d.id);
 }
@@ -542,6 +569,7 @@ function renderDashboard() {
     {icon:'📈',label:'Forecast ce mois',prompt:'Fais mon forecast réaliste vs optimiste pour ce mois.'},
     {icon:'🎯',label:'Priorités semaine',prompt:'Quelles sont mes 3 priorités absolues cette semaine ?'},
   ];
+  window._dashActions = actions;
 
   el.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -556,7 +584,7 @@ function renderDashboard() {
     </div>
     <div class="section-card">
       <div class="section-title">Actions rapides avec Marc</div>
-      <div class="quick-grid">${actions.map(a=>`<button class="quick-btn" onclick="quickCoach(${JSON.stringify(a.prompt)})"><span style="font-size:20px">${a.icon}</span><span>${a.label}</span></button>`).join('')}</div>
+      <div class="quick-grid">${actions.map((a,i)=>`<button class="quick-btn" onclick="quickCoachIdx(${i})"><span style="font-size:20px">${a.icon}</span><span>${a.label}</span></button>`).join('')}</div>
     </div>
     ${deals.length===0?`<div class="empty-state"><div style="font-size:48px;margin-bottom:12px">📭</div><div style="font-size:15px;font-weight:600;color:var(--text2);margin-bottom:8px">Aucun deal en ${currentYear}</div><button style="padding:10px 24px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer" onclick="switchTab('pipeline')">+ Ajouter un deal</button></div>`:''}
   `;
@@ -642,7 +670,7 @@ function renderPipeline() {
             ${deal.notes?`<div class="deal-notes">"${escHtml(deal.notes)}"</div>`:''}
           </div>
           <div class="deal-actions">
-            <button class="deal-btn" style="color:#a5b4fc" onclick="quickCoach('Deal coaching sur ${deal.client} — ${deal.product}. ${escHtml(deal.notes||'')}')">🤖</button>
+            <button class="deal-btn" style="color:#a5b4fc" onclick="dealCoach('${deal.id}')">🤖</button>
             <button class="deal-btn" style="color:var(--text2)" onclick="openEditDeal('${deal.id}')">✏️</button>
             <button class="deal-btn" style="color:var(--red)" onclick="deleteDeal('${deal.id}')">🗑</button>
           </div>
@@ -727,14 +755,16 @@ async function deleteDeal(id) {
 
 // ─── COACH ───────────────────────────────────────────────────────────────────
 function buildQuickbar() {
-  document.getElementById('quickbar').innerHTML = [
+  window._qbActions = [
     {l:'📊 Analyser',p:'Analyse mon pipeline complet et donne-moi un diagnostic avec recommandations.'},
     {l:'⚠️ Risques',p:'Identifie mes deals à risque et propose des actions correctives.'},
     {l:'📈 Forecast',p:'Fais mon forecast réaliste vs optimiste pour ce mois.'},
     {l:'🎯 Priorités',p:'Quelles sont mes 3 priorités absolues cette semaine ?'},
     {l:'🔄 Reset',p:null},
-  ].map(x=>`<button class="quick-chip" onclick="${x.p?`quickCoach(${JSON.stringify(x.p)})`:'resetChat()'}">${x.l}</button>`).join('');
+  ];
+  document.getElementById('quickbar').innerHTML = window._qbActions.map((x,i)=>`<button class="quick-chip" onclick="qbClick(${i})">${x.l}</button>`).join('');
 }
+function qbClick(i){const x=window._qbActions?.[i];if(!x)return;if(x.p)quickCoach(x.p);else resetChat();}
 
 function renderChat() {
   const el=document.getElementById('chat-messages');
@@ -749,6 +779,8 @@ function renderChat() {
 function scrollChatBottom(){const el=document.getElementById('chat-messages');if(el)el.scrollTop=el.scrollHeight;}
 function resetChat(){chatHistory=[];localStorage.removeItem(CHAT_KEY);renderChat();}
 async function quickCoach(prompt){switchTab('coach');setTimeout(()=>sendCoach(prompt),100);}
+function quickCoachIdx(i){const a=window._dashActions?.[i];if(a)quickCoach(a.prompt);}
+function dealCoach(id){const d=deals.find(x=>x.id===id);if(d){const p=`Deal coaching sur ${d.client} — ${d.product} (${fmt(parseFloat(d.amount)||0)}, stage ${d.stage}). ${d.notes||'Aide-moi à avancer sur ce deal.'}`;quickCoach(p);}}
 function sendChat(){const v=document.getElementById('chat-input').value.trim();if(v)sendCoach(v);}
 function chatKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
