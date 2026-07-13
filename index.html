@@ -9,7 +9,7 @@
 <title>Pipeline Agent · FTS</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#020617;--bg2:#0a0f1e;--bg3:#0f172a;--border:#1e293b;--border2:#334155;--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--accent:#6366f1;--accent2:#8b5cf6;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b}
+:root{--bg:#020617;--bg2:#0a0f1e;--bg3:#0f172a;--border:#1e293b;--border2:#334155;--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--accent:#6366f1;--accent2:#8b5cf6;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--blue:#3b82f6}
 body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
 button{cursor:pointer;font-family:inherit;border:none}
 input,select,textarea{font-family:inherit;background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;font-size:13px;width:100%}
@@ -30,19 +30,18 @@ select option{background:var(--bg3)}
 .app-title{font-weight:800;font-size:14px}
 .app-status{font-size:11px;display:flex;align-items:center;gap:4px;margin-top:1px}
 .dot{width:5px;height:5px;border-radius:50%;display:inline-block;flex-shrink:0}
-#nav{display:flex;gap:4px}
+#nav{display:flex;gap:4px;align-items:center}
 .nav-btn{padding:6px 12px;border-radius:8px;font-size:13px;font-weight:600;transition:all .15s;border:1px solid transparent;background:transparent;color:var(--text3)}
 .nav-btn.active{background:var(--bg3);border-color:var(--border2);color:var(--text)}
+#year-select{background:var(--bg3);border:1px solid var(--border2);color:var(--accent);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;width:auto}
 
 .tab{display:none;flex:1;overflow-y:auto}
 .tab.active{display:block}
 .tab-scroll{padding:20px 16px;max-width:900px;margin:0 auto}
 
-/* LOADING */
 #loading-screen{display:flex;align-items:center;justify-content:center;flex:1;flex-direction:column;gap:16px}
 .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
 
-/* KPI */
 .kpi-grid{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
 .kpi-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;flex:1;min-width:130px}
 .kpi-value{font-size:19px;font-weight:800;letter-spacing:-0.5px}
@@ -59,7 +58,7 @@ select option{background:var(--bg3)}
 .quick-btn{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;color:var(--text2);font-size:12px;font-weight:600;text-align:left;transition:all .15s}
 .quick-btn:hover{border-color:var(--accent);color:var(--text)}
 
-/* PIPELINE */
+.target-card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px}
 .pipeline-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
 .filter-row{display:flex;gap:6px;flex-wrap:wrap}
 .filter-chip{padding:4px 10px;border-radius:20px;font-size:11px;border:1px solid var(--border);background:var(--bg3);color:var(--text3);transition:all .15s}
@@ -81,14 +80,13 @@ select option{background:var(--bg3)}
 .badge{border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600;white-space:nowrap}
 .badge-risk{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);border-radius:20px;padding:1px 8px;font-size:11px}
 .badge-soon{background:rgba(245,158,11,.15);color:var(--yellow);border:1px solid rgba(245,158,11,.3);border-radius:20px;padding:1px 8px;font-size:11px}
-.deal-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text3)}
+.deal-meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--text3)}
 .deal-amount{color:#a5b4fc;font-weight:700}
 .deal-notes{font-size:12px;color:#475569;margin-top:6px;font-style:italic}
 .deal-actions{display:flex;gap:6px;flex-shrink:0}
 .deal-btn{padding:5px 10px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;font-size:13px}
 .empty-state{text-align:center;padding:50px 20px;color:var(--text3)}
 
-/* COACH */
 #coach-tab{display:none;flex-direction:column;height:calc(100vh - 57px)}
 #coach-tab.active{display:flex}
 .quickbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;gap:8px;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
@@ -118,9 +116,11 @@ select option{background:var(--bg3)}
 #send-btn{width:44px;height:44px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .2s}
 #send-btn:disabled{background:var(--bg3);cursor:not-allowed}
 
-/* TOAST */
 #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 18px;font-size:13px;opacity:0;transition:all .3s;pointer-events:none;z-index:100;white-space:nowrap}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:var(--bg3);border:1px solid var(--border2);border-radius:16px;padding:24px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto}
+.modal-title{font-weight:800;font-size:15px;margin-bottom:20px;color:#a5b4fc}
 </style>
 </head>
 <body>
@@ -137,19 +137,21 @@ select option{background:var(--bg3)}
       </div>
     </div>
     <div id="nav">
+      <select id="year-select" onchange="changeYear(this.value)"></select>
       <button class="nav-btn active" onclick="switchTab('dashboard')">📊</button>
       <button class="nav-btn" onclick="switchTab('pipeline')">📋</button>
       <button class="nav-btn" onclick="switchTab('coach')">🤖</button>
-      <button class="nav-btn" onclick="syncNow()" title="Synchroniser">🔄</button>
+      <button class="nav-btn" onclick="openTargets()">🎯</button>
+      <button class="nav-btn" onclick="syncAll()">🔄</button>
     </div>
   </div>
 
   <div id="loading-screen">
     <div class="spinner"></div>
-    <div style="color:var(--text3);font-size:13px">Synchronisation Google Sheets…</div>
+    <div style="color:var(--text3);font-size:13px">Synchronisation…</div>
   </div>
 
-  <div id="main-content" style="display:none;flex:1;overflow:hidden;display:none;flex-direction:column">
+  <div id="main-content" style="display:none;flex:1;overflow:hidden;flex-direction:column">
     <div class="tab active" id="dashboard-tab"><div class="tab-scroll" id="dashboard-scroll"></div></div>
     <div class="tab" id="pipeline-tab"><div class="tab-scroll" id="pipeline-scroll"></div></div>
     <div id="coach-tab">
@@ -164,7 +166,6 @@ select option{background:var(--bg3)}
     </div>
   </div>
 </div>
-
 <div id="toast"></div>
 
 <script>
@@ -172,6 +173,16 @@ select option{background:var(--bg3)}
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxncZJjKQQSHtBlWmUxRr4-zMEJQQf8_yFeiWM9xZ8TIefX91HMhVvLl8j7t37A55i5CQ/exec';
 const ANTHROPIC_KEY = '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';
 const CHAT_KEY = 'fts-chat-v2';
+
+const CATEGORIES = [
+  {id:'infra',label:'Infra',color:'#6366f1',sub:[
+    {id:'dc',label:'DC'},
+    {id:'networking',label:'Networking'},
+    {id:'cybersec',label:'Cybersécurité'},
+  ]},
+  {id:'cloud',label:'Cloud',color:'#3b82f6',sub:[]},
+  {id:'maintenance',label:'Maintenance',color:'#10b981',sub:[]},
+];
 
 const STAGES = [
   {id:'prospect',label:'Prospect',color:'#64748b',prob:10},
@@ -184,100 +195,152 @@ const STAGES = [
 ];
 const PRODUCTS = ['Cisco SD-WAN','Cisco ACI','Fortinet NGFW','Dell HCI','IBM Power','IBM Storage','Veeam','Forcepoint','Autre'];
 const BANKS = ['UIB','ATB','BIAT','STB','BNA','Amen Bank','Al Baraka','Wifak Bank','QNBT','Banque Zitouna','BH Bank','Attijari','Autre'];
+const DEAL_HEADERS = ['id','client','product','amount','stage','closing','contact','notes','createdAt','category','subcat'];
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let deals = [];
+let targets = {};   // {year: {infra, cloud, maintenance}}
 let chatHistory = [];
 let currentTab = 'dashboard';
 let currentFilter = 'all';
-let anthropicKey = 'sk-ant-api03-f-3anKlnNlF_Dm-5PYZN1fHodFpGnb35Fwe4POPRCvYDqoGZcxRinjyCoL2JPIypaUhkZf8xZ6Xi0g2zERFzxw-Q_zYYAAA';
+let currentYear = new Date().getFullYear();
+let availableYears = [];
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
-  // Load chat from localStorage
   try { chatHistory = JSON.parse(localStorage.getItem(CHAT_KEY)) || []; } catch(_) { chatHistory = []; }
-
-  // Load deals from Google Sheets
-  await loadFromSheets();
-
-  document.getElementById('loading-screen').style.display = 'none';
-  const main = document.getElementById('main-content');
-  main.style.display = 'flex';
-  main.style.flexDirection = 'column';
-  main.style.flex = '1';
-  main.style.overflow = 'hidden';
-
-  renderAll();
-  buildQuickbar();
-  renderChat();
+  await syncAll();
 });
 
-// ─── GOOGLE SHEETS ───────────────────────────────────────────────────────────
+// ─── SHEETS API ──────────────────────────────────────────────────────────────
+async function sheetGet(action, params={}) {
+  const url = new URL(SCRIPT_URL);
+  url.searchParams.set('action', action);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
 
-async function loadFromSheets() {
+async function sheetPost(action, data) {
+  const res = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({action, ...data})
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+async function syncAll() {
+  setStatus('sync', '☁️ Sync…');
   try {
-    setStatus('sync', '☁️ Sync…');
-    const res = await fetch(SCRIPT_URL);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const rows = await res.json();
-    if (!Array.isArray(rows) || rows.length <= 1) { deals = []; setStatus('ok', '0 deals · synchro ✓'); return; }
-    const headers = rows[0];
-    deals = rows.slice(1).map(row => {
-      const obj = {};
-      headers.forEach((h, i) => { obj[h] = (row[i] !== undefined ? row[i] : '').toString(); });
-      return obj;
-    }).filter(d => d.id);
-    setStatus('ok', `${deals.length} deal${deals.length!==1?'s':''} · synchro ✓`);
+    // 1. Get available years
+    const years = await sheetGet('getYears');
+    availableYears = years.length ? years : [currentYear];
+    if (!availableYears.includes(currentYear)) availableYears.unshift(currentYear);
+    renderYearSelect();
+
+    // 2. Load config (targets)
+    const configRows = await sheetGet('getConfig');
+    targets = {};
+    if (configRows.length > 1) {
+      const headers = configRows[0];
+      configRows.slice(1).forEach(row => {
+        const year = parseInt(row[0]);
+        const obj = {};
+        headers.slice(1).forEach((h, i) => { obj[h.replace('target_','')] = parseFloat(row[i+1])||0; });
+        targets[year] = obj;
+      });
+    }
+
+    // 3. Load deals for current year
+    await loadDeals();
+
+    // Show app
+    document.getElementById('loading-screen').style.display = 'none';
+    const main = document.getElementById('main-content');
+    main.style.display = 'flex';
+    main.style.flexDirection = 'column';
+    main.style.flex = '1';
+    main.style.overflow = 'hidden';
+
+    renderAll();
+    buildQuickbar();
+    renderChat();
+    setStatus('ok', `${deals.length} deal${deals.length!==1?'s':''} · ${currentYear} · ✓`);
   } catch(e) {
-    console.error('Sheets load error:', e);
+    console.error(e);
     setStatus('error', 'Erreur sync');
     showToast('❌ ' + e.message);
   }
 }
 
-async function saveToSheets() {
+async function loadDeals() {
+  const rows = await sheetGet('getDeals', {year: currentYear});
+  if (!Array.isArray(rows) || rows.length <= 1) { deals = []; return; }
+  const headers = rows[0];
+  deals = rows.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = (row[i] !== undefined ? row[i] : '').toString(); });
+    return obj;
+  }).filter(d => d.id);
+}
+
+async function saveDeals() {
+  setStatus('sync', '💾 Sauvegarde…');
   try {
-    setStatus('sync', '💾 Sauvegarde…');
-    const headers = ['id','client','product','amount','stage','closing','contact','notes','createdAt'];
-    const values = [headers, ...deals.map(d => headers.map(h => d[h] || ''))];
-    const res = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify(values)
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    setStatus('ok', `${deals.length} deal${deals.length!==1?'s':''} · sauvegardé ✓`);
-    showToast('✅ Sauvegardé dans Google Sheets');
+    const values = [DEAL_HEADERS, ...deals.map(d => DEAL_HEADERS.map(h => d[h]||''))];
+    await sheetPost('saveDeals', {year: currentYear, values});
+    setStatus('ok', `${deals.length} deal${deals.length!==1?'s':''} · ${currentYear} · ✓`);
+    showToast('✅ Sauvegardé');
   } catch(e) {
-    console.error('Sheets save error:', e);
     setStatus('error', 'Erreur sauvegarde');
     showToast('❌ ' + e.message);
   }
 }
 
-async function syncNow() {
-  await loadFromSheets();
-  renderAll();
-  showToast('🔄 Pipeline synchronisé');
+async function saveConfig() {
+  const headers = ['year', 'target_infra', 'target_cloud', 'target_maintenance'];
+  const values = [headers];
+  const allYears = [...new Set([...availableYears, currentYear])].sort();
+  allYears.forEach(y => {
+    const t = targets[y] || {infra:0, cloud:0, maintenance:0};
+    values.push([y, t.infra||0, t.cloud||0, t.maintenance||0]);
+  });
+  await sheetPost('saveConfig', {values});
 }
 
-// ─── STATUS ──────────────────────────────────────────────────────────────────
+// ─── YEAR ────────────────────────────────────────────────────────────────────
+function renderYearSelect() {
+  const sel = document.getElementById('year-select');
+  sel.innerHTML = availableYears.map(y => `<option value="${y}"${y===currentYear?' selected':''}>${y}</option>`).join('');
+}
+
+async function changeYear(year) {
+  currentYear = parseInt(year);
+  setStatus('sync', '☁️ Chargement…');
+  try {
+    await loadDeals();
+    renderAll();
+    setStatus('ok', `${deals.length} deal${deals.length!==1?'s':''} · ${currentYear} · ✓`);
+  } catch(e) {
+    setStatus('error', 'Erreur');
+    showToast('❌ ' + e.message);
+  }
+}
+
+// ─── STATUS / TOAST ──────────────────────────────────────────────────────────
 function setStatus(type, text) {
   const dot = document.getElementById('status-dot');
   const txt = document.getElementById('status-text');
-  const colors = {ok:'var(--green)', sync:'var(--yellow)', error:'var(--red)'};
-  const c = colors[type] || 'var(--green)';
-  dot.style.background = c;
-  dot.style.animation = type==='sync' ? 'pulse 1s infinite' : 'none';
-  txt.style.color = c;
-  txt.textContent = text;
+  const c = {ok:'var(--green)',sync:'var(--yellow)',error:'var(--red)'}[type]||'var(--green)';
+  dot.style.background = c; dot.style.animation = type==='sync'?'pulse 1s infinite':'none';
+  txt.style.color = c; txt.textContent = text;
 }
-
-// ─── TOAST ───────────────────────────────────────────────────────────────────
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
 }
 
 // ─── UTILS ───────────────────────────────────────────────────────────────────
@@ -299,25 +362,51 @@ function getMetrics() {
   return {active,won,totalPipeline,weighted,wonTotal,atRisk};
 }
 
-// ─── TABS ────────────────────────────────────────────────────────────────────
-function switchTab(tab) {
-  document.querySelectorAll('.tab, #coach-tab').forEach(el=>el.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach((b,i)=>{ if(i<3) b.classList.remove('active'); });
-  const idx = ['dashboard','pipeline','coach'].indexOf(tab);
-  if(idx>=0) document.querySelectorAll('.nav-btn')[idx].classList.add('active');
-  document.getElementById(tab+'-tab').classList.add('active');
-  currentTab = tab;
-  if(tab==='dashboard') renderDashboard();
-  if(tab==='pipeline') renderPipeline();
-  if(tab==='coach') { renderChat(); setTimeout(scrollChatBottom, 50); }
+function getCatTotals() {
+  const result = {};
+  CATEGORIES.forEach(c => {
+    const catDeals = deals.filter(d=>d.category===c.id&&d.stage!=='lost');
+    const wonDeals = deals.filter(d=>d.category===c.id&&d.stage==='won');
+    result[c.id] = {
+      total: catDeals.reduce((s,d)=>s+(parseFloat(d.amount)||0),0),
+      won: wonDeals.reduce((s,d)=>s+(parseFloat(d.amount)||0),0),
+      count: catDeals.length,
+    };
+    if(c.sub.length) {
+      result[c.id].subs = {};
+      c.sub.forEach(s => {
+        const sd = deals.filter(d=>d.category===c.id&&d.subcat===s.id&&d.stage!=='lost');
+        result[c.id].subs[s.id] = {
+          total: sd.reduce((acc,d)=>acc+(parseFloat(d.amount)||0),0),
+          count: sd.length,
+        };
+      });
+    }
+  });
+  return result;
 }
 
-function renderAll() { renderDashboard(); renderPipeline(); }
+// ─── TABS ────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab,#coach-tab').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(tab+'-tab').classList.add('active');
+  const idx=['dashboard','pipeline','coach'].indexOf(tab);
+  if(idx>=0) document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+  currentTab=tab;
+  if(tab==='dashboard') renderDashboard();
+  if(tab==='pipeline') renderPipeline();
+  if(tab==='coach'){renderChat();setTimeout(scrollChatBottom,50);}
+}
+function renderAll(){renderDashboard();renderPipeline();}
 
 // ─── DASHBOARD ───────────────────────────────────────────────────────────────
 function renderDashboard() {
   const m = getMetrics();
+  const catTotals = getCatTotals();
+  const yearTargets = targets[currentYear] || {infra:0,cloud:0,maintenance:0};
   const el = document.getElementById('dashboard-scroll');
+
   const kpis = [
     {icon:'💼',label:'Pipeline total',value:fmt(m.totalPipeline),sub:`${m.active.length} deals actifs`,color:'#6366f1'},
     {icon:'⚖️',label:'Weighted',value:fmt(m.weighted),sub:'Pondéré prob.',color:'#8b5cf6'},
@@ -325,53 +414,142 @@ function renderDashboard() {
     {icon:'⚠️',label:'En retard',value:m.atRisk.length,sub:'Closing dépassé',color:m.atRisk.length>0?'#ef4444':'#64748b'},
   ];
 
+  const targetCards = CATEGORIES.map(cat => {
+    const t = yearTargets[cat.id] || 0;
+    const tot = catTotals[cat.id] || {total:0,won:0,count:0};
+    const pctWon = t>0 ? Math.min(100,Math.round((tot.won/t)*100)) : 0;
+    const pctPipe = t>0 ? Math.min(100,Math.round((tot.total/t)*100)) : 0;
+    const color = pctWon>=100?'#22c55e':pctWon>=50?'#f59e0b':cat.color;
+
+    const subRows = cat.sub.length && tot.subs ? cat.sub.map(s => {
+      const sd = tot.subs[s.id]||{total:0,count:0};
+      const pct = tot.total>0 ? Math.round((sd.total/tot.total)*100) : 0;
+      return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-top:1px solid var(--border);font-size:11px">
+        <span style="color:var(--text3)">${s.label}</span>
+        <span style="color:var(--text2);font-weight:600">${fmt(sd.total)} <span style="color:var(--text3)">(${pct}%)</span></span>
+      </div>`;
+    }).join('') : '';
+
+    return `<div class="target-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div>
+          <div style="font-weight:700;font-size:14px;color:${cat.color}">${cat.label}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">Target ${currentYear} : ${fmt(t)} · ${tot.count} deal${tot.count!==1?'s':''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:24px;font-weight:800;color:${color}">${pctWon}%</div>
+          <div style="font-size:10px;color:var(--text3)">Gagné / Target</div>
+        </div>
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:3px"><span>Gagné</span><span style="color:${color};font-weight:600">${fmt(tot.won)}</span></div>
+        <div style="background:var(--border);border-radius:6px;height:8px"><div style="width:${pctWon}%;background:${cat.color};border-radius:6px;height:100%;transition:width .5s"></div></div>
+      </div>
+      <div style="margin-bottom:${subRows?'10px':'0'}">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:3px"><span>Pipeline actif</span><span>${fmt(tot.total)}</span></div>
+        <div style="background:var(--border);border-radius:6px;height:5px"><div style="width:${pctPipe}%;background:${cat.color}66;border-radius:6px;height:100%;transition:width .5s"></div></div>
+      </div>
+      ${subRows?`<div>${subRows}</div>`:''}
+    </div>`;
+  }).join('');
+
   const activeStages = STAGES.filter(s=>!['won','lost'].includes(s.id));
   const vals = activeStages.map(s=>deals.filter(d=>d.stage===s.id).reduce((a,d)=>a+(parseFloat(d.amount)||0),0));
   const maxVal = Math.max(...vals,1);
 
   const actions = [
-    {icon:'🔍',label:'Analyser pipeline',prompt:'Analyse mon pipeline complet et donne-moi un diagnostic global.'},
-    {icon:'⚠️',label:'Deals à risque',prompt:'Identifie mes deals à risque et propose des actions correctives.'},
+    {icon:'🔍',label:'Analyser pipeline',prompt:'Analyse mon pipeline complet et donne-moi un diagnostic global avec recommandations.'},
+    {icon:'⚠️',label:'Deals à risque',prompt:'Identifie mes deals à risque et propose des actions correctives concrètes.'},
     {icon:'📈',label:'Forecast ce mois',prompt:'Fais mon forecast réaliste vs optimiste pour ce mois.'},
     {icon:'🎯',label:'Priorités semaine',prompt:'Quelles sont mes 3 priorités absolues cette semaine ?'},
   ];
 
   el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-weight:800;font-size:16px">Vue ${currentYear}</div>
+    </div>
     <div class="kpi-grid">${kpis.map(k=>`<div class="kpi-card"><div style="font-size:18px;margin-bottom:6px">${k.icon}</div><div class="kpi-value" style="color:${k.color}">${k.value}</div><div class="kpi-label">${k.label}</div><div class="kpi-sub">${k.sub}</div></div>`).join('')}</div>
+    <div style="font-weight:700;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">🎯 Targets & Avancement ${currentYear}</div>
+    ${targetCards}
     <div class="section-card">
       <div class="section-title">Répartition par stage</div>
-      ${activeStages.map((s,i)=>{
-        const cnt=deals.filter(d=>d.stage===s.id).length;
-        return `<div class="stage-row"><div class="stage-row-top"><span style="color:var(--text2)">${s.label}</span><span style="color:${s.color};font-weight:600">${fmt(vals[i])} · ${cnt}</span></div><div class="stage-bar-bg"><div class="stage-bar-fill" style="width:${(vals[i]/maxVal)*100}%;background:${s.color}"></div></div></div>`;
-      }).join('')}
+      ${activeStages.map((s,i)=>{const cnt=deals.filter(d=>d.stage===s.id).length;return `<div class="stage-row"><div class="stage-row-top"><span style="color:var(--text2)">${s.label}</span><span style="color:${s.color};font-weight:600">${fmt(vals[i])} · ${cnt}</span></div><div class="stage-bar-bg"><div class="stage-bar-fill" style="width:${(vals[i]/maxVal)*100}%;background:${s.color}"></div></div></div>`;}).join('')}
     </div>
     <div class="section-card">
       <div class="section-title">Actions rapides avec Marc</div>
       <div class="quick-grid">${actions.map(a=>`<button class="quick-btn" onclick="quickCoach(${JSON.stringify(a.prompt)})"><span style="font-size:20px">${a.icon}</span><span>${a.label}</span></button>`).join('')}</div>
     </div>
-    ${deals.length===0?`<div class="empty-state"><div style="font-size:48px;margin-bottom:12px">📭</div><div style="font-size:15px;font-weight:600;color:var(--text2);margin-bottom:8px">Pipeline vide</div><div style="font-size:13px;margin-bottom:20px">Ajoute tes deals actifs</div><button style="padding:10px 24px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer" onclick="switchTab('pipeline')">+ Ajouter un deal</button></div>`:''}
+    ${deals.length===0?`<div class="empty-state"><div style="font-size:48px;margin-bottom:12px">📭</div><div style="font-size:15px;font-weight:600;color:var(--text2);margin-bottom:8px">Aucun deal en ${currentYear}</div><button style="padding:10px 24px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer" onclick="switchTab('pipeline')">+ Ajouter un deal</button></div>`:''}
   `;
+}
+
+// ─── TARGETS MODAL ───────────────────────────────────────────────────────────
+function openTargets() {
+  const yearTargets = targets[currentYear] || {infra:0,cloud:0,maintenance:0};
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'targets-modal';
+  modal.innerHTML = `<div class="modal-box">
+    <div class="modal-title">🎯 Targets ${currentYear}</div>
+    ${CATEGORIES.map(c=>`<div style="margin-bottom:14px">
+      <label style="display:block;color:var(--text3);font-size:11px;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">${c.label} (DT HT)</label>
+      <input type="number" id="t-${c.id}" value="${yearTargets[c.id]||0}" style="font-size:14px;font-weight:600">
+    </div>`).join('')}
+    <div style="margin-bottom:14px">
+      <label style="display:block;color:var(--text3);font-size:11px;margin-bottom:5px">Ou ajouter une autre année</label>
+      <input type="number" id="t-new-year" placeholder="ex: 2027" style="font-size:13px">
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="document.getElementById('targets-modal').remove()">Annuler</button>
+      <button class="btn-save" onclick="saveTargetsModal()">💾 Sauvegarder</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+async function saveTargetsModal() {
+  const newYear = parseInt(document.getElementById('t-new-year')?.value);
+  const yearToSave = newYear || currentYear;
+  if (!targets[yearToSave]) targets[yearToSave] = {};
+  CATEGORIES.forEach(c => {
+    targets[yearToSave][c.id] = parseFloat(document.getElementById('t-'+c.id)?.value)||0;
+  });
+  if (newYear && !availableYears.includes(newYear)) {
+    availableYears.unshift(newYear);
+    availableYears.sort((a,b)=>b-a);
+    renderYearSelect();
+  }
+  document.getElementById('targets-modal')?.remove();
+  try {
+    await saveConfig();
+    showToast('✅ Targets sauvegardés dans Google Sheets');
+    renderDashboard();
+  } catch(e) {
+    showToast('❌ Erreur : ' + e.message);
+  }
 }
 
 // ─── PIPELINE ────────────────────────────────────────────────────────────────
 function renderPipeline() {
   const el = document.getElementById('pipeline-scroll');
   const filtered = deals.filter(d=>currentFilter==='all'||d.stage===currentFilter);
-
   const chips = ['all',...STAGES.map(s=>s.id)].map(s=>`<button class="filter-chip${currentFilter===s?' active':''}" onclick="setFilter('${s}')">${s==='all'?'Tous':STAGES.find(x=>x.id===s)?.label}</button>`).join('');
 
   const dealCards = filtered.length===0
-    ? `<div class="empty-state"><div style="font-size:32px;margin-bottom:8px">📭</div><div style="font-size:13px">Aucun deal dans ce stage</div></div>`
+    ? `<div class="empty-state"><div style="font-size:32px;margin-bottom:8px">📭</div><div style="font-size:13px">Aucun deal</div></div>`
     : filtered.map(deal=>{
         const days=daysDiff(deal.closing);
         const isRisk=days!==null&&days<0&&!['won','lost'].includes(deal.stage);
         const isSoon=days!==null&&days>=0&&days<=14&&!['won','lost'].includes(deal.stage);
         const stg=STAGES.find(s=>s.id===deal.stage)||STAGES[0];
+        const cat=CATEGORIES.find(c=>c.id===deal.category);
+        const sub=cat?.sub?.find(s=>s.id===deal.subcat);
         return `<div class="deal-card${isRisk?' risk':isSoon?' soon':''}">
           <div class="deal-main">
             <div class="deal-top">
               <span class="deal-name">${deal.client}</span>
               <span class="badge" style="background:${stg.color}22;color:${stg.color};border:1px solid ${stg.color}44">${stg.label}</span>
+              ${cat?`<span class="badge" style="background:${cat.color}22;color:${cat.color};border:1px solid ${cat.color}44">${cat.label}${sub?' / '+sub.label:''}</span>`:''}
               ${isRisk?`<span class="badge-risk">⚠️ Retard ${Math.abs(days)}j</span>`:''}
               ${isSoon?`<span class="badge-soon">🔥 J-${days}</span>`:''}
             </div>
@@ -384,7 +562,7 @@ function renderPipeline() {
             ${deal.notes?`<div class="deal-notes">"${escHtml(deal.notes)}"</div>`:''}
           </div>
           <div class="deal-actions">
-            <button class="deal-btn" style="color:#a5b4fc" onclick="quickCoach('Deal coaching sur ${deal.client} — ${deal.product}')">🤖</button>
+            <button class="deal-btn" style="color:#a5b4fc" onclick="quickCoach('Deal coaching sur ${deal.client} — ${deal.product}. ${escHtml(deal.notes||'')}')">🤖</button>
             <button class="deal-btn" style="color:var(--text2)" onclick="openEditDeal('${deal.id}')">✏️</button>
             <button class="deal-btn" style="color:var(--red)" onclick="deleteDeal('${deal.id}')">🗑</button>
           </div>
@@ -401,30 +579,23 @@ function renderPipeline() {
   `;
 }
 
-function setFilter(stage) {
-  currentFilter = stage;
-  renderPipeline();
-}
+function setFilter(stage){currentFilter=stage;renderPipeline();}
 
-function openNewDeal() {
-  renderDealForm({id:'',client:'',product:'',amount:'',stage:'prospect',closing:'',contact:'',notes:''});
-}
-
-function openEditDeal(id) {
-  const deal = deals.find(d=>d.id===id);
-  if(deal) renderDealForm(deal);
-}
+function openNewDeal(){renderDealForm({id:'',client:'',product:'',amount:'',stage:'prospect',closing:'',contact:'',notes:'',category:'',subcat:''});}
+function openEditDeal(id){const d=deals.find(x=>x.id===id);if(d)renderDealForm(d);}
 
 function renderDealForm(d) {
   const c = document.getElementById('deal-form-container');
   if(!c) return;
   c.innerHTML = `<div class="deal-form-card">
-    <div style="font-weight:700;font-size:14px;margin-bottom:16px;color:#a5b4fc">${d.id?'✏️ Modifier — '+d.client:'➕ Nouveau deal'}</div>
+    <div style="font-weight:700;font-size:14px;margin-bottom:16px;color:#a5b4fc">${d.id?'✏️ Modifier':'➕ Nouveau deal'} · ${currentYear}</div>
     <div class="form-grid">
       <div class="form-group"><label>Client *</label><select id="f-client"><option value="">Banque…</option>${BANKS.map(b=>`<option${d.client===b?' selected':''}>${b}</option>`).join('')}</select></div>
       <div class="form-group"><label>Produit *</label><select id="f-product"><option value="">Solution…</option>${PRODUCTS.map(p=>`<option${d.product===p?' selected':''}>${p}</option>`).join('')}</select></div>
       <div class="form-group"><label>Montant (DT HT) *</label><input type="number" id="f-amount" placeholder="ex: 250000" value="${d.amount||''}"></div>
       <div class="form-group"><label>Stage *</label><select id="f-stage">${STAGES.map(s=>`<option value="${s.id}"${d.stage===s.id?' selected':''}>${s.label}</option>`).join('')}</select></div>
+      <div class="form-group"><label>Catégorie</label><select id="f-category" onchange="updateSubcat()"><option value="">Choisir…</option>${CATEGORIES.map(c=>`<option value="${c.id}"${d.category===c.id?' selected':''}>${c.label}</option>`).join('')}</select></div>
+      <div class="form-group" id="f-subcat-grp" style="${d.category==='infra'?'':'display:none'}"><label>Sous-catégorie</label><select id="f-subcat"><option value="">Choisir…</option><option value="dc"${d.subcat==='dc'?' selected':''}>DC</option><option value="networking"${d.subcat==='networking'?' selected':''}>Networking</option><option value="cybersec"${d.subcat==='cybersec'?' selected':''}>Cybersécurité</option></select></div>
       <div class="form-group"><label>Date closing</label><input type="date" id="f-closing" value="${d.closing||''}"></div>
       <div class="form-group"><label>Contact principal</label><input type="text" id="f-contact" placeholder="Nom / titre" value="${d.contact||''}"></div>
     </div>
@@ -437,10 +608,11 @@ function renderDealForm(d) {
   c.scrollIntoView({behavior:'smooth'});
 }
 
-function cancelForm() {
-  const c = document.getElementById('deal-form-container');
-  if(c) c.innerHTML='';
+function updateSubcat(){
+  const g=document.getElementById('f-subcat-grp');
+  if(g) g.style.display=document.getElementById('f-category')?.value==='infra'?'':'none';
 }
+function cancelForm(){const c=document.getElementById('deal-form-container');if(c)c.innerHTML='';}
 
 async function saveDealForm(existingId) {
   const client=document.getElementById('f-client').value;
@@ -448,103 +620,104 @@ async function saveDealForm(existingId) {
   const amount=document.getElementById('f-amount').value;
   if(!client||!product||!amount){alert('Client, produit et montant obligatoires');return;}
   const deal={
-    id:existingId||genId(), client, product, amount,
+    id:existingId||genId(),client,product,amount,
     stage:document.getElementById('f-stage').value,
     closing:document.getElementById('f-closing').value,
     contact:document.getElementById('f-contact').value,
     notes:document.getElementById('f-notes').value,
+    category:document.getElementById('f-category')?.value||'',
+    subcat:document.getElementById('f-subcat')?.value||'',
     createdAt:existingId?(deals.find(d=>d.id===existingId)?.createdAt||new Date().toISOString()):new Date().toISOString(),
   };
   if(existingId) deals=deals.map(d=>d.id===existingId?deal:d);
   else deals.push(deal);
   cancelForm();
-  await saveToSheets();
+  await saveDeals();
   renderAll();
 }
 
 async function deleteDeal(id) {
   if(!confirm('Supprimer ce deal ?')) return;
   deals=deals.filter(d=>d.id!==id);
-  await saveToSheets();
+  await saveDeals();
   renderAll();
 }
 
 // ─── COACH ───────────────────────────────────────────────────────────────────
 function buildQuickbar() {
-  const bar = document.getElementById('quickbar');
-  const prompts = [
-    {label:'📊 Analyser pipeline',prompt:'Analyse mon pipeline complet et donne-moi un diagnostic avec recommandations.'},
-    {label:'⚠️ Deals à risque',prompt:'Identifie mes deals à risque et propose des actions correctives.'},
-    {label:'📈 Forecast',prompt:'Fais mon forecast réaliste vs optimiste pour ce mois.'},
-    {label:'🎯 Priorités semaine',prompt:'Quelles sont mes 3 priorités absolues cette semaine ?'},
-    {label:'🔄 Reset chat',prompt:null},
-  ];
-  bar.innerHTML = prompts.map(p=>`<button class="quick-chip" onclick="${p.prompt?`quickCoach(${JSON.stringify(p.prompt)})`:'resetChat()'}">${p.label}</button>`).join('');
+  document.getElementById('quickbar').innerHTML = [
+    {l:'📊 Analyser',p:'Analyse mon pipeline complet et donne-moi un diagnostic avec recommandations.'},
+    {l:'⚠️ Risques',p:'Identifie mes deals à risque et propose des actions correctives.'},
+    {l:'📈 Forecast',p:'Fais mon forecast réaliste vs optimiste pour ce mois.'},
+    {l:'🎯 Priorités',p:'Quelles sont mes 3 priorités absolues cette semaine ?'},
+    {l:'🔄 Reset',p:null},
+  ].map(x=>`<button class="quick-chip" onclick="${x.p?`quickCoach(${JSON.stringify(x.p)})`:'resetChat()'}">${x.l}</button>`).join('');
 }
 
 function renderChat() {
-  const el = document.getElementById('chat-messages');
+  const el=document.getElementById('chat-messages');
   if(chatHistory.length===0){
-    el.innerHTML=`<div class="marc-empty"><div class="marc-avatar-big">🤖</div><div style="font-weight:800;font-size:16px;margin-bottom:8px">Marc Dupont · Agent Commercial</div><div style="color:var(--text3);font-size:13px;line-height:1.7">J'ai accès à ton pipeline Google Sheets en temps réel.<br>Dis-moi ce que tu veux analyser.</div></div>`;
+    el.innerHTML=`<div class="marc-empty"><div class="marc-avatar-big">🤖</div><div style="font-weight:800;font-size:16px;margin-bottom:8px">Marc Dupont · Agent Commercial</div><div style="color:var(--text3);font-size:13px;line-height:1.7">J'ai accès à ton pipeline ${currentYear} en temps réel.<br>Dis-moi ce que tu veux analyser.</div></div>`;
     return;
   }
   el.innerHTML=chatHistory.map(m=>`<div class="msg-wrap ${m.role==='user'?'user':''}"><div class="msg-avatar ${m.role==='user'?'user':'marc'}">${m.role==='user'?'N':'M'}</div><div class="msg-bubble ${m.role==='user'?'user':'marc'}">${escHtml(m.content)}</div></div>`).join('');
   scrollChatBottom();
 }
 
-function scrollChatBottom(){const el=document.getElementById('chat-messages');el.scrollTop=el.scrollHeight;}
-
+function scrollChatBottom(){const el=document.getElementById('chat-messages');if(el)el.scrollTop=el.scrollHeight;}
 function resetChat(){chatHistory=[];localStorage.removeItem(CHAT_KEY);renderChat();}
-
-async function quickCoach(prompt) {
-  switchTab('coach');
-  await syncNow();
-  setTimeout(()=>sendCoach(prompt),200);
-}
-
+async function quickCoach(prompt){switchTab('coach');setTimeout(()=>sendCoach(prompt),100);}
 function sendChat(){const v=document.getElementById('chat-input').value.trim();if(v)sendCoach(v);}
-
 function chatKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}
-
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
 
 async function sendCoach(text) {
-  if(!text.trim()||!anthropicKey) return;
+  if(!text.trim()) return;
   chatHistory.push({role:'user',content:text});
   renderChat();
   document.getElementById('chat-input').value='';
   document.getElementById('chat-input').style.height='44px';
   document.getElementById('send-btn').disabled=true;
 
-  // Show typing
   const el=document.getElementById('chat-messages');
   const typing=document.createElement('div');
-  typing.id='typing';
-  typing.className='typing-wrap';
+  typing.id='typing';typing.className='typing-wrap';
   typing.innerHTML=`<div class="msg-avatar marc">M</div><div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
-  el.appendChild(typing);
-  scrollChatBottom();
+  el.appendChild(typing);scrollChatBottom();
 
   const m=getMetrics();
+  const yearTargets=targets[currentYear]||{infra:0,cloud:0,maintenance:0};
+  const catTotals=getCatTotals();
+
   const pipelineJson=JSON.stringify(deals.map(d=>({
     client:d.client,produit:d.product,montant_DT:parseFloat(d.amount)||0,
     stage:d.stage,closing:d.closing||'non défini',contact:d.contact,notes:d.notes,
+    categorie:d.category,sous_categorie:d.subcat,
     jours_avant_closing:d.closing?daysDiff(d.closing):null,
   })),null,2);
 
+  const targetsStr = CATEGORIES.map(c=>{
+    const t=yearTargets[c.id]||0;
+    const tot=catTotals[c.id]||{total:0,won:0};
+    const pct=t>0?Math.round((tot.won/t)*100):0;
+    return `${c.label}: target=${fmt(t)}, gagné=${fmt(tot.won)} (${pct}%), pipeline=${fmt(tot.total)}`;
+  }).join(' | ');
+
   const system=`Tu es Marc Dupont, Directeur Commercial B2B 20 ans expérience IT banking. Tu coaches Nabli (SAM FTS, marché bancaire tunisien).
 
-PIPELINE ACTUEL (Google Sheets, temps réel) :
+ANNÉE : ${currentYear}
+PIPELINE (temps réel Google Sheets) :
 ${pipelineJson}
 
-MÉTRIQUES : Pipeline: ${fmt(m.totalPipeline)} | Weighted: ${fmt(m.weighted)} | Actifs: ${m.active.length} | Gagné YTD: ${fmt(m.wonTotal)} | En retard: ${m.atRisk.length}
+MÉTRIQUES : Pipeline: ${fmt(m.totalPipeline)} | Weighted: ${fmt(m.weighted)} | Gagné: ${fmt(m.wonTotal)} | En retard: ${m.atRisk.length}
+TARGETS ${currentYear} : ${targetsStr}
 
 STYLE : Direct, exigeant, bienveillant. Français + jargon B2B. Termine par : 🎯 TOP 3 ACTIONS · ⚠️ RISQUES · 📊 FORECAST`;
 
   try {
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':anthropicKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system,messages:chatHistory.slice(-20)})
     });
     const data=await res.json();
@@ -554,7 +727,6 @@ STYLE : Direct, exigeant, bienveillant. Français + jargon B2B. Termine par : �
   } catch(e) {
     chatHistory.push({role:'assistant',content:'❌ Erreur : '+e.message});
   }
-
   document.getElementById('typing')?.remove();
   renderChat();
   document.getElementById('send-btn').disabled=false;
@@ -562,8 +734,8 @@ STYLE : Direct, exigeant, bienveillant. Français + jargon B2B. Termine par : �
 
 // PWA manifest
 const manifest={name:'Pipeline FTS',short_name:'Pipeline',start_url:'.',display:'standalone',background_color:'#020617',theme_color:'#020617',icons:[{src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%236366f1"/><text y=".9em" font-size="80" x="10">⚡</text></svg>',sizes:'any',type:'image/svg+xml'}]};
-const blob=new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
-const link=document.createElement('link');link.rel='manifest';link.href=URL.createObjectURL(blob);document.head.appendChild(link);
+const mblob=new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
+const mlink=document.createElement('link');mlink.rel='manifest';mlink.href=URL.createObjectURL(mblob);document.head.appendChild(mlink);
 </script>
 </body>
 </html>
