@@ -195,6 +195,7 @@ select option{background:#0a1428}
       <button class="nav-btn" onclick="switchTab('pipeline')">📋</button>
       <button class="nav-btn" onclick="switchTab('coach')">🤖</button>
       <button class="nav-btn" onclick="openTargets()">🎯</button>
+      <button class="nav-btn" onclick="openSettings()">⚙️</button>
       <button class="nav-btn" onclick="syncAll()">🔄</button>
       <button class="nav-btn" id="theme-btn" onclick="toggleTheme()">🌙</button>
     </div>
@@ -247,9 +248,14 @@ const STAGES = [
   {id:'won',label:'Gagné ✓',color:'#22c55e',prob:100},
   {id:'lost',label:'Perdu ✗',color:'#ef4444',prob:0},
 ];
-const PRODUCTS = ['Cisco SD-WAN','Cisco ACI','Fortinet NGFW','Dell HCI','IBM Power','IBM Storage','Veeam','Forcepoint','Autre'];
-const BANKS = ['UIB','ATB','BIAT','STB','BNA','Amen Bank','Al Baraka','Wifak Bank','QNBT','Banque Zitouna','BH Bank','Attijari','Autre'];
-const DEAL_HEADERS = ['id','client','product','amount','stage','closing','contact','notes','createdAt','category','subcat','margin'];
+// Dynamic lists loaded from Sheets 'Lists' tab
+let CLIENTS = [];
+let PRODUCTS = [];
+let SUBPRODUCTS = [];
+const DEFAULT_CLIENTS = ['UIB','ATB','BIAT','STB','BNA','Amen Bank','Al Baraka','Wifak Bank','Attijari','Autre'];
+const DEFAULT_PRODUCTS = ['Cisco','Fortinet','Dell','IBM','Forcepoint','Veeam','VMware','HPE','Autre'];
+const DEFAULT_SUBPRODUCTS = ['SD-WAN','NGFW','Switch','Router','Firewall','HCI','Backup','Storage','Autre'];
+const DEAL_HEADERS = ['id','client','product','amount','stage','closing','contact','notes','createdAt','category','subcat','margin','subproduct'];
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let deals = [];
@@ -325,7 +331,10 @@ async function syncAll() {
       });
     }
 
-    // 3. Load deals for current year
+    // 3. Load lists (clients, products, subproducts)
+    await loadLists();
+
+    // 4. Load deals for current year
     await loadDeals();
 
     // Show app
@@ -369,6 +378,36 @@ function cleanMargin(val) {
   // If it looks like a date (corrupted), return empty
   if (/T\d{2}:\d{2}/.test(s) || /^\d{4}-\d{2}-\d{2}/.test(s)) return '';
   return s;
+}
+
+async function loadLists() {
+  try {
+    const rows = await sheetGet('getLists');
+    CLIENTS = []; PRODUCTS = []; SUBPRODUCTS = [];
+    if (Array.isArray(rows) && rows.length > 1) {
+      rows.slice(1).forEach(row => {
+        if (row[0]) CLIENTS.push(row[0].toString());
+        if (row[1]) PRODUCTS.push(row[1].toString());
+        if (row[2]) SUBPRODUCTS.push(row[2].toString());
+      });
+    }
+    if (!CLIENTS.length) CLIENTS = [...DEFAULT_CLIENTS];
+    if (!PRODUCTS.length) PRODUCTS = [...DEFAULT_PRODUCTS];
+    if (!SUBPRODUCTS.length) SUBPRODUCTS = [...DEFAULT_SUBPRODUCTS];
+  } catch(e) {
+    CLIENTS = [...DEFAULT_CLIENTS];
+    PRODUCTS = [...DEFAULT_PRODUCTS];
+    SUBPRODUCTS = [...DEFAULT_SUBPRODUCTS];
+  }
+}
+
+async function saveLists() {
+  const max = Math.max(CLIENTS.length, PRODUCTS.length, SUBPRODUCTS.length);
+  const values = [['clients','produits','sous_produits']];
+  for (let i=0; i<max; i++) {
+    values.push([CLIENTS[i]||'', PRODUCTS[i]||'', SUBPRODUCTS[i]||'']);
+  }
+  await sheetPost('saveLists', {values});
 }
 
 async function loadDeals() {
@@ -591,6 +630,68 @@ function renderDashboard() {
 }
 
 // ─── TARGETS MODAL ───────────────────────────────────────────────────────────
+function openSettings() {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'settings-modal';
+  modal.innerHTML = `<div class="modal-box">
+    <div class="modal-title">⚙️ Gérer les listes</div>
+    <div id="settings-lists"></div>
+    <div class="form-actions" style="margin-top:20px">
+      <button class="btn-cancel" onclick="document.getElementById('settings-modal').remove()">Fermer</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  renderSettingsLists();
+}
+
+function renderSettingsLists() {
+  const container = document.getElementById('settings-lists');
+  if (!container) return;
+  const lists = [
+    {name:'Clients', arr:CLIENTS, key:'clients'},
+    {name:'Constructeurs', arr:PRODUCTS, key:'products'},
+    {name:'Sous-produits', arr:SUBPRODUCTS, key:'subproducts'},
+  ];
+  container.innerHTML = lists.map(l => `
+    <div style="margin-bottom:18px">
+      <div style="font-size:12px;font-weight:700;color:var(--cyan);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">${l.name}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+        ${l.arr.map((item,i)=>`<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(59,130,246,0.12);border:1px solid var(--border2);border-radius:16px;padding:3px 8px 3px 11px;font-size:12px;color:var(--text2)">${item}<button onclick="removeListItem('${l.key}',${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:0;line-height:1">×</button></span>`).join('')}
+      </div>
+      <div style="display:flex;gap:6px">
+        <input type="text" id="add-${l.key}" placeholder="Ajouter…" style="font-size:12px;padding:6px 10px">
+        <button onclick="addListItem('${l.key}')" style="padding:6px 14px;background:linear-gradient(135deg,var(--accent),var(--cyan));color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">+ Ajouter</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function getListByKey(key) {
+  if (key === 'clients') return CLIENTS;
+  if (key === 'products') return PRODUCTS;
+  if (key === 'subproducts') return SUBPRODUCTS;
+  return [];
+}
+
+async function addListItem(key) {
+  const input = document.getElementById('add-'+key);
+  const val = input?.value.trim();
+  if (!val) return;
+  const arr = getListByKey(key);
+  if (arr.includes(val)) { showToast('Déjà dans la liste'); return; }
+  arr.push(val);
+  renderSettingsLists();
+  try { await saveLists(); showToast('✅ Ajouté & synchronisé'); } catch(e) { showToast('❌ '+e.message); }
+}
+
+async function removeListItem(key, idx) {
+  const arr = getListByKey(key);
+  arr.splice(idx, 1);
+  renderSettingsLists();
+  try { await saveLists(); showToast('✅ Supprimé & synchronisé'); } catch(e) { showToast('❌ '+e.message); }
+}
+
 function openTargets() {
   const yearTargets = targets[currentYear] || {infra:0,cloud:0,maintenance:0};
   const modal = document.createElement('div');
@@ -663,7 +764,7 @@ function renderPipeline() {
             <div class="deal-meta">
               <span class="deal-amount">${deal.amount?fmt(parseFloat(deal.amount)):'—'}</span>
               ${deal.margin&&parseFloat(deal.margin)>0?`<span style="color:#22d3ee">📊 ${deal.margin}% marge</span>`:''}
-              ${deal.product?`<span>📦 ${deal.product}</span>`:''}
+              ${deal.product?`<span>📦 ${deal.product}${deal.subproduct?' · '+deal.subproduct:''}</span>`:''}
               ${deal.contact?`<span>👤 ${deal.contact}</span>`:''}
               ${deal.closing?`<span>📅 ${new Date(deal.closing).toLocaleDateString('fr-TN')}</span>`:''}
             </div>
@@ -698,8 +799,9 @@ function renderDealForm(d) {
   c.innerHTML = `<div class="deal-form-card">
     <div style="font-weight:700;font-size:14px;margin-bottom:16px;color:#a5b4fc">${d.id?'✏️ Modifier':'➕ Nouveau deal'} · ${currentYear}</div>
     <div class="form-grid">
-      <div class="form-group"><label>Client *</label><select id="f-client"><option value="">Banque…</option>${BANKS.map(b=>`<option${d.client===b?' selected':''}>${b}</option>`).join('')}</select></div>
-      <div class="form-group"><label>Produit *</label><select id="f-product"><option value="">Solution…</option>${PRODUCTS.map(p=>`<option${d.product===p?' selected':''}>${p}</option>`).join('')}</select></div>
+      <div class="form-group"><label>Client *</label><select id="f-client"><option value="">Banque…</option>${CLIENTS.map(b=>`<option${d.client===b?' selected':''}>${b}</option>`).join('')}</select></div>
+      <div class="form-group"><label>Constructeur *</label><select id="f-product"><option value="">Constructeur…</option>${PRODUCTS.map(p=>`<option${d.product===p?' selected':''}>${p}</option>`).join('')}</select></div>
+      <div class="form-group"><label>Sous-produit</label><select id="f-subproduct"><option value="">Sous-produit…</option>${SUBPRODUCTS.map(sp=>`<option${d.subproduct===sp?' selected':''}>${sp}</option>`).join('')}</select></div>
       <div class="form-group"><label>Montant (DT HT) *</label><input type="number" id="f-amount" placeholder="ex: 250000" value="${d.amount||''}"></div>
       <div class="form-group"><label>Marge (%)</label><input type="number" id="f-margin" placeholder="ex: 18" value="${d.margin||''}"></div>
       <div class="form-group"><label>Stage *</label><select id="f-stage">${STAGES.map(s=>`<option value="${s.id}"${d.stage===s.id?' selected':''}>${s.label}</option>`).join('')}</select></div>
@@ -737,6 +839,7 @@ async function saveDealForm(existingId) {
     category:document.getElementById('f-category')?.value||'',
     subcat:document.getElementById('f-subcat')?.value||'',
     margin:document.getElementById('f-margin')?.value||'',
+    subproduct:document.getElementById('f-subproduct')?.value||'',
     createdAt:existingId?(deals.find(d=>d.id===existingId)?.createdAt||new Date().toISOString()):new Date().toISOString(),
   };
   if(existingId) deals=deals.map(d=>d.id===existingId?deal:d);
